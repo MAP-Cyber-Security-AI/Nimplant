@@ -4,7 +4,7 @@ Flask==2.2.3
 gevent==22.10.2
 itsdangerous==2.1.2
 Jinja2==3.1.2
-prompt_toolkit==3.0.38; sys_platform=="win32"
+prompt_toolkit==3.0.38
 PyCryptoDome==3.17
 pyyaml==6.0
 requests==2.28.2
