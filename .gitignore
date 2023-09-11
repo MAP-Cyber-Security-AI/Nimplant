@@ -7,7 +7,6 @@ __pycache__/
 *.exe
 *.pyc
 bin/
-config.toml
 server/downloads/
 server/logs/
 server/uploads/
