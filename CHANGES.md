@@ -1,0 +1,1 @@
+- removed obvious references to NimPlant in Server and Client headers
