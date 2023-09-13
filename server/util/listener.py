@@ -34,7 +34,7 @@ except KeyError as e:
 
 # Init flask app and surpress Flask/Gevent logging and startup messages
 app = flask.Flask(__name__)
-ident = decompress(base64.b16decode(b_ident)).decode("utf-8")
+#ident = decompress(base64.b16decode(b_ident)).decode("utf-8")
 
 # Define a function to notify users of unknown or erroneous requests
 def notifyBadRequest(src, method, path, user_agent, reason=None):
