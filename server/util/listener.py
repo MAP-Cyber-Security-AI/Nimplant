@@ -24,7 +24,8 @@ try:
     if listenerType == "HTTPS":
         sslCertPath = config["listener"]["sslCertPath"]
         sslKeyPath = config["listener"]["sslKeyPath"]
-    b_ident = b"789CF3CBCC0DC849CC2B51703652084E2D2A4B2D02003B5C0650"
+    #b_ident = b"789CF3CBCC0DC849CC2B51703652084E2D2A4B2D02003B5C0650"
+    ident = "Apache/2.2.14"
 except KeyError as e:
     nimplantPrint(
         f"ERROR: Could not load configuration, check your 'config.toml': {str(e)}"
