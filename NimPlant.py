@@ -199,7 +199,9 @@ if __name__ == "__main__":
         )
         exit(1)
 
+    # Check whether there is an command given by the user. If no command given, then print the available commands like ''compile''
     if len(sys.argv) > 1:
+        # Compile based on user input
         if sys.argv[1] == "compile":
 
             if len(sys.argv) > 3 and sys.argv[3] in ["nim", "nim-debug"]:
@@ -228,6 +230,7 @@ if __name__ == "__main__":
 
             print("Done compiling! You can find compiled binaries in 'client/bin/'.")
 
+        # Start the server
         elif sys.argv[1] == "server":
             xor_key = getXorKey()
             from server.server import main
@@ -238,6 +241,7 @@ if __name__ == "__main__":
             except:
                 main(xor_key, "")
 
+        # Clean all data
         elif sys.argv[1] == "cleanup":
             from shutil import rmtree
 
@@ -273,6 +277,7 @@ if __name__ == "__main__":
             else:
                 print("Aborting...")
 
+        # If no valid command was given, then inform the user.
         else:
             print_usage()
             print("ERROR: Unrecognized command.")

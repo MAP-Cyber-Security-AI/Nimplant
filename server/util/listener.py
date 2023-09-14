@@ -317,6 +317,7 @@ def flaskListener(xor_key):
 
     @app.after_request
     def changeserver(response):
+        # Server name defined
         response.headers["Server"] = ident
         return response
 
