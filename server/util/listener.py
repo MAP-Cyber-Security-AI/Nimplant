@@ -11,6 +11,7 @@ import gzip
 import hashlib
 import io
 import json
+import random
 
 # Parse configuration from 'config.toml'
 try:
@@ -25,7 +26,7 @@ try:
         sslCertPath = config["listener"]["sslCertPath"]
         sslKeyPath = config["listener"]["sslKeyPath"]
     #b_ident = b"789CF3CBCC0DC849CC2B51703652084E2D2A4B2D02003B5C0650"
-    ident = "Apache/2.2.14"
+    #ident = "Apache/2.2.14"
 except KeyError as e:
     nimplantPrint(
         f"ERROR: Could not load configuration, check your 'config.toml': {str(e)}"
@@ -317,6 +318,21 @@ def flaskListener(xor_key):
 
     @app.after_request
     def changeserver(response):
+        # Set of possible server names
+        possibleNames =  ["Apache", "IIS", "Nginx", "Lighttpd", "NetWare", "GWS", "Domino"]
+
+        # Choose one random name
+        randomNumber = random.randint(0, 6)
+        chosenName = possibleNames[randomNumber]
+
+        # Choose random version numbers
+        nr1 = random.randint(0, 8)
+        nr2 = random.randint(0, 10)
+        nr3 = random.randint(0, 15)
+
+        # Set randomly generated servername
+        ident = chosenName + "/" + str(nr1) + "." + str(nr2) + "." + str(nr3)
+
         # Server name defined
         response.headers["Server"] = ident
         return response
