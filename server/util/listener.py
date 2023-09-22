@@ -23,7 +23,13 @@ try:
     resultPath = config["listener"]["resultPath"]
     # userAgent = config["nimplant"]["userAgent"]
     # Adding a list of permitted user agents such that the server checks after every request whether the useragent fro mthe request is permitted
-    allowedUserAgents = ["Mozilla/5.0 (Windows NT 10.0; Win64; x64)"]
+    allowedUserAgents = [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64)", "iPhone/15.0 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "Android/11 (Linux; Android 11) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Mobile Safari/537.36",
+        "AppleWebKit/605.1.15 (KHTML, like Gecko) Safari/605.1.15",
+        "Linux/x86_64 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "SamsungBrowser/15.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/15.0 Mobile Safari/537.36"
+    ]
     if listenerType == "HTTPS":
         sslCertPath = config["listener"]["sslCertPath"]
         sslKeyPath = config["listener"]["sslKeyPath"]
