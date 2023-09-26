@@ -41,6 +41,9 @@ class Server:
         self.killDate = config["nimplant"]["killDate"]
         self.userAgent = config["nimplant"]["userAgent"]
 
+        # Strategies are initially disabled
+        self.strategyOneEnabled = False
+
     def asdict(self):
         return {
             "guid": self.guid,

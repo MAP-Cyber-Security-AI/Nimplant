@@ -326,20 +326,24 @@ def flaskListener(xor_key):
 
     @app.after_request
     def changeserver(response):
-        # Set of possible server names
-        possibleNames = ["Apache", "IIS", "Nginx", "Lighttpd", "NetWare", "GWS", "Domino"]
 
-        # Choose one random name
-        randomNumber = random.randint(0, 6)
-        chosenName = possibleNames[randomNumber]
+        if np_server.strategyOneEnabled:
+            # Set of possible server names
+            possibleNames = ["Apache", "IIS", "Nginx", "Lighttpd", "NetWare", "GWS", "Domino"]
 
-        # Choose random version numbers
-        nr1 = random.randint(0, 8)
-        nr2 = random.randint(0, 10)
-        nr3 = random.randint(0, 15)
+            # Choose one random name
+            randomNumber = random.randint(0, 6)
+            chosenName = possibleNames[randomNumber]
 
-        # Set randomly generated servername
-        ident = chosenName + "/" + str(nr1) + "." + str(nr2) + "." + str(nr3)
+            # Choose random version numbers
+            nr1 = random.randint(0, 8)
+            nr2 = random.randint(0, 10)
+            nr3 = random.randint(0, 15)
+
+            # Set randomly generated servername
+            ident = chosenName + "/" + str(nr1) + "." + str(nr2) + "." + str(nr3)
+        else:
+            ident = "Apache/2.2.14"
 
         # Server name defined
         response.headers["Server"] = ident

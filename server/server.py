@@ -55,8 +55,16 @@ def main(xor_key=459457925, name=""):
         try:
             if np_server.isActiveNimplantSelected():
                 promptUserForCommand()
-            elif np_server.containsActiveNimplants():
-                np_server.selectNextActiveNimplant()
+
+            # This was commented out such that it is possible to activate/deactivate Strategies in the command line
+            # Otherwise Nimplants would be automatically selected in the command line and then no Strategies can be commanded
+            # elif np_server.containsActiveNimplants():
+                # np_server.selectNextActiveNimplant()
+
+            elif input() == "Strategy One":
+                np_server.strategyOneEnabled = not np_server.strategyOneEnabled
+                print("Strategy 1 enabled: " + str(np_server.strategyOneEnabled))
+
             else:
                 pass
 
