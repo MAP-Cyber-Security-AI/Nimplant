@@ -43,7 +43,7 @@ class Server:
 
         # Strategies are initially disabled
         self.strategyOneEnabled = False
-
+        self.strategyTwoEnabled = False
     def asdict(self):
         return {
             "guid": self.guid,

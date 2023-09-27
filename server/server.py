@@ -53,6 +53,8 @@ def main(xor_key=459457925, name=""):
     # Run the console as the main thread
     while True:
         try:
+            userInput = input()
+
             if np_server.isActiveNimplantSelected():
                 promptUserForCommand()
 
@@ -61,9 +63,13 @@ def main(xor_key=459457925, name=""):
             # elif np_server.containsActiveNimplants():
                 # np_server.selectNextActiveNimplant()
 
-            elif input() == "Strategy One":
+            elif userInput == "Strategy One":
                 np_server.strategyOneEnabled = not np_server.strategyOneEnabled
                 print("Strategy 1 enabled: " + str(np_server.strategyOneEnabled))
+
+            elif userInput == "Strategy Two":
+                np_server.strategyTwoEnabled = not np_server.strategyTwoEnabled
+                print("Strategy 2 enabled: " + str(np_server.strategyTwoEnabled))
 
             else:
                 pass
