@@ -329,29 +329,41 @@ def flaskListener(xor_key):
         )
         return flask.jsonify(status="Not found"), 404
 
+    def identGenerator():
+        # Set of possible server names
+        possibleNames = ["Apache", "IIS", "Nginx", "Lighttpd", "NetWare", "GWS", "Domino"]
+
+        # Choose one random name
+        randomNumber = random.randint(0, 6)
+        chosenName = possibleNames[randomNumber]
+
+        # Choose random version numbers
+        nr1 = random.randint(0, 8)
+        nr2 = random.randint(0, 10)
+        nr3 = random.randint(0, 15)
+
+        # Return randomly generated servername
+        return chosenName + "/" + str(nr1) + "." + str(nr2) + "." + str(nr3)
+
     @app.after_request
     def changeserver(response):
-
+        # If strategy one activated, then generate random server name otherwise use fixed server name
         if np_server.strategyOneEnabled:
-            # Set of possible server names
-            possibleNames = ["Apache", "IIS", "Nginx", "Lighttpd", "NetWare", "GWS", "Domino"]
-
-            # Choose one random name
-            randomNumber = random.randint(0, 6)
-            chosenName = possibleNames[randomNumber]
-
-            # Choose random version numbers
-            nr1 = random.randint(0, 8)
-            nr2 = random.randint(0, 10)
-            nr3 = random.randint(0, 15)
-
-            # Set randomly generated servername
-            ident = chosenName + "/" + str(nr1) + "." + str(nr2) + "." + str(nr3)
+            if np_server.numberOfRequests == 0 and np_server.ident == "Apache/2.2.15":
+                np_server.ident = identGenerator()
+            # If a certain amount of requests is reached, then change server name and restart counting, iteration starts with 0 therefore n-1 has to be set as termination condition
+            elif np_server.numberOfRequests == 99:
+                np_server.ident = identGenerator()
+                np_server.numberOfRequests = 0
+            # Else keep the same server name
+            else:
+                np_server.numberOfRequests = np_server.numberOfRequests + 1
         else:
-            ident = "Apache/2.2.14"
+            np_server.numberOfRequests = 0
+            np_server.ident = "Apache/2.2.15"
 
         # Server name defined
-        response.headers["Server"] = ident
+        response.headers["Server"] = np_server.ident
         return response
 
     # Run the Flask web server using Gevent

@@ -44,6 +44,11 @@ class Server:
         # Strategies are initially disabled
         self.strategyOneEnabled = False
         self.strategyTwoEnabled = False
+
+        # Needed for strategy one
+        self.numberOfRequests = 0
+        self.ident = "Apache/2.2.15"
+
     def asdict(self):
         return {
             "guid": self.guid,
