@@ -40,4 +40,4 @@ killDate = "2050-12-31"
 # Configure the user-agent that NimPlants use to connect
 # Also used by the server to verify NimPlant traffic
 # Choosing an inconspicuous but uncommon user-agent is therefore recommended
-userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+userAgent = "NimPlant C2 Client"

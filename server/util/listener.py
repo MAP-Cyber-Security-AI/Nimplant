@@ -24,7 +24,7 @@ try:
     # userAgent = config["nimplant"]["userAgent"]
     # Adding a list of permitted user agents such that the server checks after every request whether the useragent fro mthe request is permitted
     allowedUserAgents = [
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64)", "iPhone/15.0 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "NimPlant C2 Client", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)", "iPhone/15.0 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
         "Android/11 (Linux; Android 11) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Mobile Safari/537.36",
         "AppleWebKit/605.1.15 (KHTML, like Gecko) Safari/605.1.15",
         "Linux/x86_64 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
@@ -349,7 +349,7 @@ def flaskListener(xor_key):
     def changeserver(response):
         # If strategy one activated, then generate random server name otherwise use fixed server name
         if np_server.strategyOneEnabled:
-            if np_server.numberOfRequests == 0 and np_server.ident == "Apache/2.2.15":
+            if np_server.numberOfRequests == 0 and np_server.ident == "NimPlant C2 Server":
                 np_server.ident = identGenerator()
             # If a certain amount of requests is reached, then change server name and restart counting, iteration starts with 0 therefore n-1 has to be set as termination condition
             elif np_server.numberOfRequests == 99:
@@ -360,7 +360,7 @@ def flaskListener(xor_key):
                 np_server.numberOfRequests = np_server.numberOfRequests + 1
         else:
             np_server.numberOfRequests = 0
-            np_server.ident = "Apache/2.2.15"
+            np_server.ident = "NimPlant C2 Server"
 
         # Server name defined
         response.headers["Server"] = np_server.ident

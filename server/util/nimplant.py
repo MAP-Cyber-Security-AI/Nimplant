@@ -47,7 +47,7 @@ class Server:
 
         # Needed for strategy one
         self.numberOfRequests = 0
-        self.ident = "Apache/2.2.15"
+        self.ident = "NimPlant C2 Server"
 
     def asdict(self):
         return {
