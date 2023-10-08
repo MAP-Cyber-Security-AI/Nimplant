@@ -10,3 +10,4 @@ bin/
 server/downloads/
 server/logs/
 server/uploads/
+*.toml
