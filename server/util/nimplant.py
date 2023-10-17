@@ -45,6 +45,8 @@ class Server:
         self.strategyOneEnabled = False
         self.strategyTwoEnabled = False
 
+        self.strategyFourEnabled = False
+
         # Needed for strategy one
         self.numberOfRequests = 0
         self.ident = "NimPlant C2 Server"
