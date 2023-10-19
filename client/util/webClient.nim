@@ -80,8 +80,7 @@ proc doRequest(li : var Listener, path : string, postKey : string = "", postValu
                 if li.randomUserAgents:
                     headers = @[
                             Header(key: "X-Identifier", value: li.id),
-                            Header(key: "User-Agent", value: getRandomUserAgent(li)),
-                            Header(key: "s4", value: $li.changeEndPoints)
+                            Header(key: "User-Agent", value: getRandomUserAgent(li))
                         ]
                 else:
                     headers = @[
