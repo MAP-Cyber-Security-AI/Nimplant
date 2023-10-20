@@ -16,7 +16,7 @@ sslKeyPath = ""
 # Leave as "" for IP:PORT-based connections
 hostname = ""
 # Configure listener IP, mandatory even if hostname is specified
-ip = "57.129.0.118"
+ip = "127.0.0.1"
 # Configure listener port, mandatory even if hostname is specified
 port = 80
 # Configure the URI paths used for C2 communications
