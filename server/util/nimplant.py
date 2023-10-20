@@ -44,7 +44,12 @@ class Server:
         # Strategies are initially disabled
         self.strategyOneEnabled = False
         self.strategyTwoEnabled = False
+        self.strategyThreeEnabled = False
+        self.strategyFourEnabled = False
 
+        # Needed for strategy one
+        self.numberOfRequests = 0
+        self.ident = "NimPlant C2 Server"
 
     def asdict(self):
         return {

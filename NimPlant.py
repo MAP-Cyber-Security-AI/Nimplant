@@ -170,7 +170,7 @@ def compile_nim(binary_type, xor_key, debug=False):
             compile_command = compile_command + " -d:risky"
 
         # adding random userAgents
-        compile_command = compile_command + " -d:randomUserAgents:true"
+        # compile_command = compile_command + " -d:randomUserAgents:true"
         
         compile_command = compile_command + " client/NimPlant.nim"
         print(f"running the following command {compile_command}")

