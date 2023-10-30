@@ -79,6 +79,10 @@ def main(xor_key=459457925, name=""):
                 np_server.strategyFiveEnabled = not np_server.strategyFiveEnabled
                 print("Strategy 5 enabled: " + str(np_server.strategyFiveEnabled))
 
+            elif userInput == "Strategy Six":
+                np_server.strategySixEnabled = not np_server.strategySixEnabled
+                print("Strategy 6 enabled: " + str(np_server.strategySixEnabled))
+
             else:
                 pass
 
