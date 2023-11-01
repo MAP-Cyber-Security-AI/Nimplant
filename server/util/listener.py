@@ -143,6 +143,8 @@ def flaskListener(xor_key):
                 # Encrypt the state of strategy
                 strategyTwoEnabledEncyrpted = encryptData(str(np_server.strategyTwoEnabled), np.cryptKey)
                 strategyFourEnabledEncyrpted = encryptData(str(np_server.strategyFourEnabled), np.cryptKey)
+                strategyFiveEnabledEncyrpted = encryptData(str(np_server.strategyFiveEnabled), np.cryptKey)
+                strategySixEnabledEncyrpted = encryptData(str(np_server.strategySixEnabled), np.cryptKey)
 
                 # Update the external IP address if it changed
                 if not np.ipAddrExt == getExternalIp(flask.request):
@@ -153,13 +155,15 @@ def flaskListener(xor_key):
                     np.checkIn()
                     task = encryptData(str(np.getNextTask()), np.cryptKey)
                     # Return task and strategy status
-                    return flask.jsonify(t=task, s2=strategyTwoEnabledEncyrpted, s4=strategyFourEnabledEncyrpted), 200
+                    return flask.jsonify(t=task, s2=strategyTwoEnabledEncyrpted, s4=strategyFourEnabledEncyrpted,
+                                         s5=strategyFiveEnabledEncyrpted, s6=strategySixEnabledEncyrpted), 200
                 else:
                     # There is no task - check in to update 'last seen'
                     if np.isActive():
                         np.checkIn()
                     # Return task and strategy status
-                    return flask.jsonify(status="OK", s2=strategyTwoEnabledEncyrpted, s4=strategyFourEnabledEncyrpted), 200
+                    return flask.jsonify(status="OK", s2=strategyTwoEnabledEncyrpted, s4=strategyFourEnabledEncyrpted,
+                                         s5=strategyFiveEnabledEncyrpted, s6=strategySixEnabledEncyrpted), 200
             else:
                 notifyBadRequest(
                     getExternalIp(flask.request),
@@ -333,6 +337,8 @@ def flaskListener(xor_key):
                 # Encrypt the state of strategy
                 strategyTwoEnabledEncyrpted = encryptData(str(np_server.strategyTwoEnabled), np.cryptKey)
                 strategyFourEnabledEncyrpted = encryptData(str(np_server.strategyFourEnabled), np.cryptKey)
+                strategyFiveEnabledEncyrpted = encryptData(str(np_server.strategyFiveEnabled), np.cryptKey)
+                strategySixEnabledEncyrpted = encryptData(str(np_server.strategySixEnabled), np.cryptKey)
 
                 # Update the external IP address if it changed
                 if not np.ipAddrExt == getExternalIp(flask.request):
@@ -343,14 +349,16 @@ def flaskListener(xor_key):
                     np.checkIn()
                     task = encryptData(str(np.getNextTask()), np.cryptKey)
                     # Return task and strategy status
-                    return flask.jsonify(t=task, s2=strategyTwoEnabledEncyrpted, s4=strategyFourEnabledEncyrpted), 200
+                    return flask.jsonify(t=task, s2=strategyTwoEnabledEncyrpted, s4=strategyFourEnabledEncyrpted,
+                                         s5=strategyFiveEnabledEncyrpted, s6=strategySixEnabledEncyrpted), 200
                 else:
                     # There is no task - check in to update 'last seen'
                     if np.isActive():
                         np.checkIn()
                     # Return task and strategy status
                     return flask.jsonify(status="OK", s2=strategyTwoEnabledEncyrpted,
-                                         s4=strategyFourEnabledEncyrpted), 200
+                                         s4=strategyFourEnabledEncyrpted, s5=strategyFiveEnabledEncyrpted,
+                                         s6=strategySixEnabledEncyrpted), 200
             else:
                 notifyBadRequest(
                     getExternalIp(flask.request),

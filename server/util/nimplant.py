@@ -46,6 +46,8 @@ class Server:
         self.strategyTwoEnabled = False
         self.strategyThreeEnabled = False
         self.strategyFourEnabled = False
+        self.strategyFiveEnabled = False
+        self.strategySixEnabled = False
 
         # Needed for strategy one
         self.numberOfRequests = 0
