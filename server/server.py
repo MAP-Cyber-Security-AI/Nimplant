@@ -78,7 +78,7 @@ def main(xor_key=459457925, name=""):
             while(np_server.strategyThreeEnabled):
                 if(np_server.strategyOneEnabled):
                     try:
-                        newPort = serverNamePortDict(np_server.ident)
+                        newPort = serverNamePortDict[np_server.ident]
                     except:
                         pass
                 else:
