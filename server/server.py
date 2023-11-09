@@ -114,24 +114,37 @@ def main(xor_key=459457925, name=""):
             # elif np_server.containsActiveNimplants():
                 # np_server.selectNextActiveNimplant()
 
+            # server name - S1
             elif userInput == "Strategy One":
                 np_server.strategyOneEnabled = not np_server.strategyOneEnabled
                 print("Strategy 1 enabled: " + str(np_server.strategyOneEnabled))
+
+            # userAgent  - S2
             elif userInput == "Strategy Two":
                 np_server.strategyTwoEnabled = not np_server.strategyTwoEnabled
                 print("Strategy 2 enabled: " + str(np_server.strategyTwoEnabled))
+ 
+            # changing ports - S3, P3
             elif userInput == "Strategy Three":
                 np_server.strategyThreeEnabled = not np_server.strategyThreeEnabled
                 print("Strategy 3 enabled: " + str(np_server.strategyThreeEnabled))
+
+            # changing endpoints - S4
             elif userInput == "Strategy Four":
                 np_server.strategyFourEnabled = not np_server.strategyFourEnabled
                 print("Strategy 4 enabled: " + str(np_server.strategyFourEnabled))
+
+            # Changing Host header
             elif userInput == "Strategy Five":
                 np_server.strategyFiveEnabled = not np_server.strategyFiveEnabled
                 print("Strategy 5 enabled: " + str(np_server.strategyFiveEnabled))
+
+            # changing frequency 
             elif userInput == "Strategy Six":
                 np_server.strategySixEnabled = not np_server.strategySixEnabled
                 print("Strategy 6 enabled: " + str(np_server.strategySixEnabled))
+
+            # changing packet size
             elif userInput == "Strategy Seven":
                 np_server.strategySevenEnabled = not np_server.strategySevenEnabled
                 print("Strategy 7 enabled: " + str(np_server.strategySevenEnabled))
