@@ -11,3 +11,4 @@ server/downloads/
 server/logs/
 server/uploads/
 .idea
+*.toml
