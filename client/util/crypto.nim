@@ -44,7 +44,7 @@ proc xorByteSeqToString*(input: seq[byte], key: int): string {.noinline.} =
         k = k +% 1
 
 # Get a random string
-proc rndStr(len : int) : string =
+proc rndStr*(len : int) : string =
     randomize()
     for _ in 0..(len-1):
         add(result, char(rand(int('A') .. int('z'))))

