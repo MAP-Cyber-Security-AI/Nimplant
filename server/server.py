@@ -134,17 +134,17 @@ def main(xor_key=459457925, name=""):
                 np_server.strategyFourEnabled = not np_server.strategyFourEnabled
                 print("Strategy 4 enabled: " + str(np_server.strategyFourEnabled))
 
-            # Changing Host header
+            # Changing Host header - S5
             elif userInput == "Strategy Five":
                 np_server.strategyFiveEnabled = not np_server.strategyFiveEnabled
                 print("Strategy 5 enabled: " + str(np_server.strategyFiveEnabled))
 
-            # changing frequency 
+            # changing frequency - S6
             elif userInput == "Strategy Six":
                 np_server.strategySixEnabled = not np_server.strategySixEnabled
                 print("Strategy 6 enabled: " + str(np_server.strategySixEnabled))
 
-            # changing packet size
+            # changing packet size - S7
             elif userInput == "Strategy Seven":
                 np_server.strategySevenEnabled = not np_server.strategySevenEnabled
                 print("Strategy 7 enabled: " + str(np_server.strategySevenEnabled))

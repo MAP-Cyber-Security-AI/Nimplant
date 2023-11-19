@@ -607,7 +607,13 @@ def flaskListener(xor_key, port):
             np = np_server.getNimplantByGuid(flask.request.headers.get("X-Identifier"))
 
             # Choose one random number
-            randomNumber  = random.randint(550, 700)
+            randomNumber = random.randint(200, 700)
+
+            # Make sure that the last two random numbers are not the same to increase variety
+            while abs(randomNumber - np_server.lastRandomNumber) < 50:
+                randomNumber = random.randint(200, 700)
+
+            np_server.lastRandomNumber = randomNumber
 
             # Multiply random number with a character to generate the content
             createdContent = 'x' * randomNumber

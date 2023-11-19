@@ -54,6 +54,9 @@ class Server:
         self.numberOfRequests = 0
         self.ident = "NimPlant C2 Server"
 
+        # Needed for strategy seven
+        self.lastRandomNumber = 0
+
     def asdict(self):
         return {
             "guid": self.guid,
