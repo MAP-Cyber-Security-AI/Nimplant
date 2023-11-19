@@ -78,9 +78,9 @@ def main(xor_key=459457925, name=""):
             while(np_server.strategyThreeEnabled):
                 if(np_server.strategyOneEnabled):
                     try:
-                        newPort = serverNamePortDict[np_server.ident]
+                        newPort = serverNamePortDict[np_server.ident.split('/')[0]]
                     except:
-                        pass
+                        newPort = np_server.listenerPort
                 else:
                     minutes = int(datetime.now().minute//10)
                     random.seed(minutes)
