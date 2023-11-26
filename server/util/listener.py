@@ -656,7 +656,7 @@ def flaskListener(xor_key, port):
             http_server.serve_forever()
         except Exception as e:
             nimplantPrint(
-                f"ERROR: Error setting up web server. Verify listener settings in 'config.toml'. Exception: {e}"
+                f"WARNING: Error setting up web server. Verify listener settings in 'config.toml'. Exception: {e}"
             )
     else:
         try:
