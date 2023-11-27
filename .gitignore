@@ -12,3 +12,5 @@ server/logs/
 server/uploads/
 .idea
 *.toml
+policies/
+qtables/

@@ -5,7 +5,8 @@ import numpy as np
 import datetime
 import time
 import subprocess
-from nimplant import *
+from .nimplant import *
+from datetime import timedelta as td
 
 
 class NimPlantEnv(gym.Env):
@@ -25,6 +26,15 @@ class NimPlantEnv(gym.Env):
             6: "Strategy Six",
             7: "Strategy Seven"
         }
+
+        try:
+            snort_log_path = '/var/log/snort/alert'
+            with open(snort_log_path, 'w'):
+                pass  
+            print(f"Content of {snort_log_path} deleted successfully.")
+
+        except Exception as e:
+            print(f"Error deleting content of {snort_log_path}: {e}")
     
     def state_to_index(self, state):
         # Convert the boolean values to binary representation and concatenate them
@@ -94,19 +104,20 @@ class NimPlantEnv(gym.Env):
         done = False
         strategy = self.actionDict[action]
         self.trigger_strategy(strategy)
-        self.action_time = datetime.datetime.now().timestamp()
+        self.action_time = datetime.now() 
+        print("Sleep for 30 seconds to count alerts ...")
         time.sleep(30)
 
         # Read and filter Snort alerts based on the time interval
         alerts = self.read_snort_alerts()
 
-        print(len(alerts))
+        print(f"Number of alerts {len(alerts)}")
 
         if(action != 0):
             self.state[action-1] = not self.state[action-1]
 
-        print(strategy)
-        print(self.state)
+        print(f"The triggered Strategy {strategy}")
+        print(f"State: {self.state}")
         
         #alert dependent
         number_of_alerts = len(alerts)
@@ -114,7 +125,9 @@ class NimPlantEnv(gym.Env):
             reward = 10 - self.state.sum()
         else:
             reward = -10* number_of_alerts - self.state.sum()
-        print(reward)
+        print(f"Reward: {reward}")
+
+        print("\n\n")
 
         if(reward >= 6):
             done = True
@@ -152,7 +165,7 @@ class NimPlantEnv(gym.Env):
                 # print(f"extractd SID {sid_str}, and time {timestamp_str}")
 
                 # convert them
-                timestamp = datetime.datetime.strptime(f"2023-{timestamp_str}", "%Y-%m/%d-%H:%M:%S.%f").timestamp()
+                timestamp = datetime.strptime(f"2023-{timestamp_str}", "%Y-%m/%d-%H:%M:%S.%f").timestamp()
                 sid = int(sid_str) if sid_str.isdigit() else None
 
             if self.is_recent_alert(timestamp) and self.is_bot_related_alert(sid):
@@ -166,4 +179,8 @@ class NimPlantEnv(gym.Env):
     def is_recent_alert(self, timestamp):
         # print(f"Action ts: {datetime.datetime.fromtimestamp(self.action_time)}, alert ts: {datetime.datetime.fromtimestamp(timestamp)}")
         # print(f"Action ts: {self.action_time}, alert ts: {timestamp}")
-        return timestamp is not None and timestamp > self.action_time
+
+        # waiting additional 10 seconds after taking an action 
+        time_delta = td(seconds=10)
+
+        return timestamp is not None and timestamp > (self.action_time + time_delta).timestamp()

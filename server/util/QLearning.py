@@ -1,7 +1,7 @@
 import random
 import numpy as np
 import pickle
-from datetime import datetime
+import datetime
 import os
 
 def Q_learning_train(env,alpha,gamma,epsilon,episodes): 
@@ -50,7 +50,7 @@ def Q_learning_train(env,alpha,gamma,epsilon,episodes):
     if not os.path.exists(folder_path_qtables):
         os.makedirs(folder_path_qtables)
 
-    current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    current_datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     filename_policy = os.path.join(folder_path_policies, f"policy_{current_datetime}.pkl")
     filename_qtable = os.path.join(folder_path_qtables, f"policy_{current_datetime}.pkl")
 
