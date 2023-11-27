@@ -18,6 +18,8 @@ from .util.func import nimplantPrint, periodicNimplantChecks
 from .util.listener import *
 from .util.nimplant import *
 from .util.input import *
+from .util.NimPlantEnv import *
+from .util.QLearning import *
 
 
 def main(xor_key=459457925, name=""):
@@ -102,57 +104,7 @@ def main(xor_key=459457925, name=""):
     t4.start()
 
     # Run the console as the main thread
-    while True:
-        try:
-            userInput = input()
-
-            if np_server.isActiveNimplantSelected():
-                promptUserForCommand()
-
-            # This was commented out such that it is possible to activate/deactivate Strategies in the command line
-            # Otherwise Nimplants would be automatically selected in the command line and then no Strategies can be commanded
-            # elif np_server.containsActiveNimplants():
-                # np_server.selectNextActiveNimplant()
-
-            # server name - S1
-            elif userInput == "Strategy One":
-                np_server.strategyOneEnabled = not np_server.strategyOneEnabled
-                print("Strategy 1 enabled: " + str(np_server.strategyOneEnabled))
-
-            # userAgent  - S2
-            elif userInput == "Strategy Two":
-                np_server.strategyTwoEnabled = not np_server.strategyTwoEnabled
-                print("Strategy 2 enabled: " + str(np_server.strategyTwoEnabled))
- 
-            # changing ports - S3, P3
-            elif userInput == "Strategy Three":
-                np_server.strategyThreeEnabled = not np_server.strategyThreeEnabled
-                print("Strategy 3 enabled: " + str(np_server.strategyThreeEnabled))
-
-            # changing endpoints - S4
-            elif userInput == "Strategy Four":
-                np_server.strategyFourEnabled = not np_server.strategyFourEnabled
-                print("Strategy 4 enabled: " + str(np_server.strategyFourEnabled))
-
-            # Changing Host header - S5
-            elif userInput == "Strategy Five":
-                np_server.strategyFiveEnabled = not np_server.strategyFiveEnabled
-                print("Strategy 5 enabled: " + str(np_server.strategyFiveEnabled))
-
-            # changing frequency - S6
-            elif userInput == "Strategy Six":
-                np_server.strategySixEnabled = not np_server.strategySixEnabled
-                print("Strategy 6 enabled: " + str(np_server.strategySixEnabled))
-
-            # changing packet size - S7
-            elif userInput == "Strategy Seven":
-                np_server.strategySevenEnabled = not np_server.strategySevenEnabled
-                print("Strategy 7 enabled: " + str(np_server.strategySevenEnabled))
-
-            else:
-                pass
-
-            time.sleep(0.5)
-
-        except KeyboardInterrupt:
-            exitServerConsole()
+    #main "loop"
+    env = NimPlantEnv()
+    env.reset()
+    Q_learn_pol, Q_table = Q_learning_train(env, 0.2, 0.95, 0.1, 5) # env, alpha, gamma, epsilon, episodes
