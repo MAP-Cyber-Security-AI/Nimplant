@@ -27,6 +27,39 @@ class NimPlantEnv(gym.Env):
             7: "Strategy Seven"
         }
 
+        self.alert_weights = {
+            1000101: 5, # nimplant keyword
+            1000102: 1, # register
+            1000103: 2, # task  
+            1000104: 2, # result
+            1000105: 5, # nimplant keyword
+            1000106: 1, # register
+            1000107: 2, # task  
+            1000108: 2, # result
+
+            1000201: 5, # nimplant keyword
+            1000202: 1, # register
+            1000203: 2, # task    
+            1000204: 2, # result
+            1000205: 2, # thresholds 15 in 1minute: frequency
+            1000206: 1, # thresholds 10 in 1minute: frequency
+            1000207: 2, # thresholds 5 in 1minute 100<>200 
+            1000208: 2, # thresholds 5 in 1minute 200<>300 
+
+            1000301: 5, # nimplant keyword
+            1000302: 1, # register ->
+            1000303: 2, # task     ->  
+            1000304: 2, # result   ->
+            1000305: 5, # nimplant keyword
+            1000306: 1, # register <-
+            1000307: 1, # task     <-     
+            1000308: 1, # result   <-
+            1000309: 2, # thresholds 2 in 0.5 minute 200<>300 
+            1000310: 2, # thresholds 2 in 0.5 minute 130<>140 
+            1000311: 2, # thresholds 2 in 0.5 minute 100<>200 
+            1000312: 1  # IP_IN_HOST_HEADER
+        }
+
         try:
             snort_log_path = '/var/log/snort/alert'
             with open(snort_log_path, 'w'):
@@ -121,15 +154,21 @@ class NimPlantEnv(gym.Env):
         
         #alert dependent
         number_of_alerts = len(alerts)
+
+        # positive reward, but continue until 5 
         if number_of_alerts == 0:
             reward = 10 - self.state.sum()
         else:
-            reward = -10* number_of_alerts - self.state.sum()
+            sum_of_weights = 0
+            for sid in alerts:
+                sum_of_weights+= self.alert_weights[sid]
+            reward = -4 * sum_of_weights - self.state.sum()
+        print(f"Triggered Alerts SIDs: {alerts}")
         print(f"Reward: {reward}")
 
         print("\n\n")
 
-        if(reward >= 6):
+        if(reward >= 5):
             done = True
 
         return self.state_to_index(self.state), reward, done, {}
@@ -152,6 +191,7 @@ class NimPlantEnv(gym.Env):
             print(f"An error occurred: {e}")
             return []
     
+    # return a list of SIDs
     def filter_alerts(self, alerts):
         # Filter alerts based on SIDs and timestamps
         filtered_alerts = []
@@ -162,6 +202,7 @@ class NimPlantEnv(gym.Env):
                 sid_str = parts[3].split(":")[1]
                 timestamp_str = f"{parts[0]}"
 
+
                 # print(f"extractd SID {sid_str}, and time {timestamp_str}")
 
                 # convert them
@@ -169,9 +210,9 @@ class NimPlantEnv(gym.Env):
                 sid = int(sid_str) if sid_str.isdigit() else None
 
             if self.is_recent_alert(timestamp) and self.is_bot_related_alert(sid):
-                filtered_alerts.append(alert)
+                filtered_alerts.append(sid)
 
-        return filtered_alerts
+        return set(filtered_alerts)
 
     def is_bot_related_alert(self, sid):
         return sid is not None and sid > 1000000  
@@ -181,6 +222,6 @@ class NimPlantEnv(gym.Env):
         # print(f"Action ts: {self.action_time}, alert ts: {timestamp}")
 
         # waiting additional 10 seconds after taking an action 
-        time_delta = td(seconds=10)
+        time_delta = td(seconds=15)
 
         return timestamp is not None and timestamp > (self.action_time + time_delta).timestamp()
