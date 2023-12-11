@@ -108,7 +108,7 @@ def main(xor_key=459457925, name=""):
     env = NimPlantEnv()
     env.reset()
     nimplantPrint("Waiting 30 seconds for client to connect . . .")
-    time.sleep(30)
+    time.sleep(0)
     nimplantPrint("Started Q_learning")
 
     Q_learn_pol, Q_table = Q_learning_train(env, 0.2, 0.95, 0.1, 5) # env, alpha, gamma, epsilon, episodes

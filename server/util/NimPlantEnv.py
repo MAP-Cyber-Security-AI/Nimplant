@@ -7,6 +7,8 @@ import time
 import subprocess
 from .nimplant import *
 from datetime import timedelta as td
+import csv
+import os
 
 
 class NimPlantEnv(gym.Env):
@@ -15,6 +17,22 @@ class NimPlantEnv(gym.Env):
         self.action_space = spaces.Discrete(8, start=0)
         self.observation_space = spaces.Discrete(128)
         self.state = np.zeros(7, dtype=bool)
+
+        folder_name = 'LearningData'
+         
+        current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M")
+        csv_file = f"LearningData_{current_datetime}.csv"
+ 
+        if not os.path.exists(folder_name):
+            os.makedirs(folder_name)
+ 
+        self.csv_path = os.path.join(folder_name, csv_file)
+ 
+        with open(self.csv_path, 'w', newline='') as file:
+            writer = csv.writer(file)
+ 
+            # Write header
+            writer.writerow(['Strategy 1', 'Strategy 2', 'Strategy 3', 'Strategy 4', 'Strategy 5', 'Strategy 6', 'Strategy 7', 'Action', 'Number of Alerts','Sum of alert weights', 'Reward', 'Done'])
 
         self.actionDict = {
             0: "Do Nothing",
@@ -59,6 +77,7 @@ class NimPlantEnv(gym.Env):
             1000311: 2, # thresholds 2 in 0.5 minute 100<>200 
             1000312: 1  # IP_IN_HOST_HEADER
         }
+
 
         try:
             snort_log_path = '/var/log/snort/alert'
@@ -136,7 +155,7 @@ class NimPlantEnv(gym.Env):
         assert self.action_space.contains(action)
         done = False
         strategy = self.actionDict[action]
-        self.trigger_strategy(strategy)
+        #self.trigger_strategy(strategy)
         self.action_time = datetime.now() 
         print("Sleep for 30 seconds to count alerts ...")
         time.sleep(30)
@@ -158,6 +177,8 @@ class NimPlantEnv(gym.Env):
         # positive reward, but continue until 5 
         if number_of_alerts == 0:
             reward = 10 - self.state.sum()
+            sum_of_weights = 0
+
         else:
             sum_of_weights = 0
             for sid in alerts:
@@ -170,6 +191,12 @@ class NimPlantEnv(gym.Env):
 
         if(reward >= 5):
             done = True
+
+        with open(self.csv_path, 'a', newline='') as file:
+           writer = csv.writer(file)
+        
+           # Write header
+           writer.writerow([self.state[0], self.state[1], self.state[2], self.state[3], self.state[4], self.state[5], self.state[6], action, number_of_alerts, sum_of_weights, reward, done])
 
         return self.state_to_index(self.state), reward, done, {}
     
