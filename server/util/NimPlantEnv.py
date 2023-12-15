@@ -112,6 +112,14 @@ class NimPlantEnv(gym.Env):
     def reset(self):
         self.state = np.zeros(7, dtype=bool)
 
+        np_server.strategyOneEnabled = False
+        np_server.strategyTwoEnabled = False
+        np_server.strategyThreeEnabled = False
+        np_server.strategyFourEnabled = False
+        np_server.strategyFiveEnabled = False
+        np_server.strategySixEnabled = False
+        np_server.strategySevenEnabled = False
+
     def trigger_strategy(self, strategy):
         if strategy == "Strategy One":
             np_server.strategyOneEnabled = not np_server.strategyOneEnabled
