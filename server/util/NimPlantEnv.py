@@ -80,13 +80,13 @@ class NimPlantEnv(gym.Env):
 
 
         try:
-            snort_log_path = '/var/log/snort/alert'
-            with open(snort_log_path, 'w'):
+            self.snort_log_path = '/var/log/snort/alert.ids'
+            with open(self.snort_log_path, 'w'):
                 pass  
-            print(f"Content of {snort_log_path} deleted successfully.")
+            print(f"Content of {self.snort_log_path} deleted successfully.")
 
         except Exception as e:
-            print(f"Error deleting content of {snort_log_path}: {e}")
+            print(f"Error deleting content of {self.snort_log_path}: {e}")
     
     def state_to_index(self, state):
         # Convert the boolean values to binary representation and concatenate them
@@ -155,7 +155,7 @@ class NimPlantEnv(gym.Env):
         assert self.action_space.contains(action)
         done = False
         strategy = self.actionDict[action]
-        #self.trigger_strategy(strategy)
+        self.trigger_strategy(strategy)
         self.action_time = datetime.now() 
         print("Sleep for 30 seconds to count alerts ...")
         time.sleep(30)
@@ -175,21 +175,25 @@ class NimPlantEnv(gym.Env):
         number_of_alerts = len(alerts)
 
         # positive reward, but continue until 5 
+        punishment_per_weight = -4
+        max_reward = 10
+        min_reward_to_done = 5
+
         if number_of_alerts == 0:
-            reward = 10 - self.state.sum()
+            reward = max_reward - self.state.sum()
             sum_of_weights = 0
 
         else:
             sum_of_weights = 0
             for sid in alerts:
                 sum_of_weights+= self.alert_weights[sid]
-            reward = -4 * sum_of_weights - self.state.sum()
+            reward = punishment_per_weight * sum_of_weights - self.state.sum()
         print(f"Triggered Alerts SIDs: {alerts}")
         print(f"Reward: {reward}")
 
         print("\n\n")
 
-        if(reward >= 5):
+        if(reward >= min_reward_to_done):
             done = True
 
         with open(self.csv_path, 'a', newline='') as file:
@@ -201,8 +205,7 @@ class NimPlantEnv(gym.Env):
         return self.state_to_index(self.state), reward, done, {}
     
     def read_snort_alerts(self):
-        snort_log_path = '/var/log/snort/alert'
-        command = ['tail', '-n', '1000', snort_log_path]  # Read enough lines to cover 30 seconds
+        command = ['tail', '-n', '1000', self.snort_log_path]  # Read enough lines to cover 30 seconds
 
         try:
             result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -248,7 +251,7 @@ class NimPlantEnv(gym.Env):
         # print(f"Action ts: {datetime.datetime.fromtimestamp(self.action_time)}, alert ts: {datetime.datetime.fromtimestamp(timestamp)}")
         # print(f"Action ts: {self.action_time}, alert ts: {timestamp}")
 
-        # waiting additional 10 seconds after taking an action 
-        time_delta = td(seconds=15)
+        # waiting additional 20 seconds after taking an action 
+        time_delta = td(seconds=20)
 
         return timestamp is not None and timestamp > (self.action_time + time_delta).timestamp()
