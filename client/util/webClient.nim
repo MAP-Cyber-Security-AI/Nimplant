@@ -75,9 +75,11 @@ proc doRequest(li : var Listener, path : string, postKey : string = "", postValu
 
         # check if frequency shall change 
         if li.changeSleepTime:
-            li.sleepJitter = 0.6
+            #li.sleepJitter = 2
+            li.sleepTime = 3
         else:
-            li.sleepJitter = 0
+            #li.sleepJitter = 0
+            li.sleepTime = 1
 
 
         # check Endpoints /results, tasks
