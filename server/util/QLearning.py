@@ -47,6 +47,7 @@ def Q_learning_train(env,alpha,gamma,epsilon,episodes):
             else:
                 action = np.argmax(q_table[state, :])%8 # Exploit learned values by choosing optimal values
 
+            print(f"======================Current Episode {i}======================")
             next_state, reward, done, info = env.step(action) 
 
             old_value = q_table[state, action]
@@ -68,14 +69,12 @@ def Q_learning_train(env,alpha,gamma,epsilon,episodes):
             
             if os.path.exists(filename_qtable):
                 with open(filename_qtable, 'ab') as file:
-                    pickle.dump(q_table, file)
+                    pickle.dump([i, current_datetime, q_table], file)
             else:
                 with open(filename_qtable, 'wb') as file:
-                    pickle.dump(q_table, file)  
+                    pickle.dump([i, current_datetime, q_table], file)  
         
-        if i % 10 == 0:
-            print(f"Episode: {i}")
-
+        
         # Save q_table after each episode
         save_learning_state(i, q_table)
 

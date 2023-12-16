@@ -32,7 +32,7 @@ class NimPlantEnv(gym.Env):
             writer = csv.writer(file)
  
             # Write header
-            writer.writerow(['Strategy 1', 'Strategy 2', 'Strategy 3', 'Strategy 4', 'Strategy 5', 'Strategy 6', 'Strategy 7', 'Action', 'Number of Alerts','Sum of alert weights', 'Reward', 'Done'])
+            writer.writerow(['Strategy 1', 'Strategy 2', 'Strategy 3', 'Strategy 4', 'Strategy 5', 'Strategy 6', 'Strategy 7', 'Action', 'Number of Alerts','Sum of alert weights', 'Reward', 'Done', 'Timestamp'])
 
         self.actionDict = {
             0: "Do Nothing",
@@ -165,8 +165,8 @@ class NimPlantEnv(gym.Env):
         strategy = self.actionDict[action]
         self.trigger_strategy(strategy)
         self.action_time = datetime.now() 
-        print("Sleep for 30 seconds to count alerts ...")
-        time.sleep(30)
+        print("Sleep for 15 seconds to count alerts ...")
+        time.sleep(15)
 
         # Read and filter Snort alerts based on the time interval
         alerts = self.read_snort_alerts()
@@ -208,7 +208,7 @@ class NimPlantEnv(gym.Env):
            writer = csv.writer(file)
         
            # Write header
-           writer.writerow([self.state[0], self.state[1], self.state[2], self.state[3], self.state[4], self.state[5], self.state[6], action, number_of_alerts, sum_of_weights, reward, done])
+           writer.writerow([self.state[0], self.state[1], self.state[2], self.state[3], self.state[4], self.state[5], self.state[6], action, number_of_alerts, sum_of_weights, reward, done, self.action_time])
 
         return self.state_to_index(self.state), reward, done, {}
     
@@ -259,7 +259,7 @@ class NimPlantEnv(gym.Env):
         # print(f"Action ts: {datetime.datetime.fromtimestamp(self.action_time)}, alert ts: {datetime.datetime.fromtimestamp(timestamp)}")
         # print(f"Action ts: {self.action_time}, alert ts: {timestamp}")
 
-        # waiting additional 20 seconds after taking an action 
-        time_delta = td(seconds=20)
+        # waiting additional 10 seconds after taking an action 
+        time_delta = td(seconds=10)
 
         return timestamp is not None and timestamp > (self.action_time + time_delta).timestamp()
