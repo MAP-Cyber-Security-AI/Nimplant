@@ -3,6 +3,7 @@ import numpy as np
 import pickle
 import datetime
 import os
+from .func import nimplantPrint
 
 
 def save_learning_state(episodes, q_table):
@@ -40,6 +41,7 @@ def Q_learning_train(env,alpha,gamma,epsilon,episodes):
     
         reward = 0
         done = False
+        number_of_positive_rewards = 0 
 
         while not done:
             if random.uniform(0, 1) < epsilon:
@@ -47,8 +49,12 @@ def Q_learning_train(env,alpha,gamma,epsilon,episodes):
             else:
                 action = np.argmax(q_table[state, :])%8 # Exploit learned values by choosing optimal values
 
-            print(f"======================Current Episode {i}======================")
+            nimplantPrint(f"======================Current Episode {i}======================")
             next_state, reward, done, info = env.step(action) 
+
+            if reward >0:
+                number_of_positive_rewards+=1
+
 
             old_value = q_table[state, action]
             next_max = np.max(q_table[next_state, :]) if q_table[next_state].size > 0 else 0
@@ -73,7 +79,11 @@ def Q_learning_train(env,alpha,gamma,epsilon,episodes):
             else:
                 with open(filename_qtable, 'wb') as file:
                     pickle.dump([i, current_datetime, q_table], file)  
-        
+            
+            # move to next eps if..
+            if number_of_positive_rewards>5:
+                nimplantPrint("[+] ==== Ended current Episode, 5 times positive reward ==== \n")
+                done= True
         
         # Save q_table after each episode
         save_learning_state(i, q_table)
@@ -109,9 +119,9 @@ def Q_learning_train(env,alpha,gamma,epsilon,episodes):
     if os.path.exists(learning_state_file_path):
         os.remove(learning_state_file_path)
         
-    print("Training finished.\n")
-    print(policy.shape)
-    print(policy)
-    print(q_table.shape)
-    print(q_table)
+    nimplantPrint("Training finished.\n")
+    nimplantPrint(policy.shape)
+    nimplantPrint(policy)
+    nimplantPrint(q_table.shape)
+    nimplantPrint(q_table)
     return policy, q_table

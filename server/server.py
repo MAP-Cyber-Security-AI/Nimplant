@@ -105,6 +105,15 @@ def main(xor_key=459457925, name=""):
 
     # Run the console as the main thread
     #main "loop"
+
+    if np_server.containsActiveNimplants():
+        np_server.killAllNimplants()
+        nimplantPrint(
+            "Waiting for all NimPlants to receive kill command... Do not force quit!"
+        )
+        while np_server.containsActiveNimplants():
+            sleep(1)
+
     env = NimPlantEnv()
     env.reset()
     nimplantPrint("Waiting 30 seconds for client to connect . . .")
@@ -112,4 +121,18 @@ def main(xor_key=459457925, name=""):
 
     nimplantPrint("\n\nStarted Q_learning")
 
-    Q_learn_pol, Q_table = Q_learning_train(env, 0.2, 0.95, 0.1, 200) # env, alpha, gamma, epsilon, episodes
+    Q_learn_pol, Q_table = Q_learning_train(env, 0.2, 0.95, 0.1, 100) # env, alpha, gamma, epsilon, episodes
+    nimplantPrint("Finished Training . . .")
+    
+    if np_server.containsActiveNimplants():
+        np_server.killAllNimplants()
+        nimplantPrint(
+            "Waiting for all NimPlants to receive kill command... Do not force quit!"
+        )
+        while np_server.containsActiveNimplants():
+            sleep(1)
+
+    nimplantPrint("Exiting...")
+    np_server.kill()
+    os._exit(0)
+

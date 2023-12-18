@@ -12,8 +12,8 @@ server/logs/
 server/uploads/
 .idea
 *.toml
-LearningData/                                           
-final_policies/ 
-final_qtables/ 
+#LearningData/                                           
+#final_policies/ 
+#final_qtables/ 
 learning_qtables/ 
 learning_states/

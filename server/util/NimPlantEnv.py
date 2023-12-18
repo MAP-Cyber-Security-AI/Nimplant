@@ -9,6 +9,8 @@ from .nimplant import *
 from datetime import timedelta as td
 import csv
 import os
+from .func import nimplantPrint
+
 
 
 class NimPlantEnv(gym.Env):
@@ -72,9 +74,9 @@ class NimPlantEnv(gym.Env):
             1000306: 1, # register <-
             1000307: 1, # task     <-     
             1000308: 1, # result   <-
-            1000309: 2, # thresholds 2 in 0.5 minute 200<>300 
-            1000310: 2, # thresholds 2 in 0.5 minute 130<>140 
-            1000311: 2, # thresholds 2 in 0.5 minute 100<>200 
+            1000309: 3, # thresholds 2 in 0.5 minute 200<>300 
+            1000310: 3, # thresholds 2 in 0.5 minute 130<>140 
+            1000311: 3, # thresholds 2 in 0.5 minute 100<>200 
             1000312: 1  # IP_IN_HOST_HEADER
         }
 
@@ -83,10 +85,10 @@ class NimPlantEnv(gym.Env):
             self.snort_log_path = '/var/log/snort/alert.ids'
             with open(self.snort_log_path, 'w'):
                 pass  
-            print(f"Content of {self.snort_log_path} deleted successfully.")
+            nimplantPrint(f"Content of {self.snort_log_path} deleted successfully.")
 
         except Exception as e:
-            print(f"Error deleting content of {self.snort_log_path}: {e}")
+            nimplantPrint(f"Error deleting content of {self.snort_log_path}: {e}")
     
     def state_to_index(self, state):
         # Convert the boolean values to binary representation and concatenate them
@@ -123,40 +125,40 @@ class NimPlantEnv(gym.Env):
     def trigger_strategy(self, strategy):
         if strategy == "Strategy One":
             np_server.strategyOneEnabled = not np_server.strategyOneEnabled
-            print("Strategy 1 enabled: " + str(np_server.strategyOneEnabled))
+            nimplantPrint("Strategy 1 enabled: " + str(np_server.strategyOneEnabled))
 
         # userAgent  - S2
         elif strategy == "Strategy Two":
             np_server.strategyTwoEnabled = not np_server.strategyTwoEnabled
-            print("Strategy 2 enabled: " + str(np_server.strategyTwoEnabled))
+            nimplantPrint("Strategy 2 enabled: " + str(np_server.strategyTwoEnabled))
 
         # changing ports - S3, P3
         elif strategy == "Strategy Three":
             np_server.strategyThreeEnabled = not np_server.strategyThreeEnabled
-            print("Strategy 3 enabled: " + str(np_server.strategyThreeEnabled))
+            nimplantPrint("Strategy 3 enabled: " + str(np_server.strategyThreeEnabled))
 
         # changing endpoints - S4
         elif strategy == "Strategy Four":
             np_server.strategyFourEnabled = not np_server.strategyFourEnabled
-            print("Strategy 4 enabled: " + str(np_server.strategyFourEnabled))
+            nimplantPrint("Strategy 4 enabled: " + str(np_server.strategyFourEnabled))
 
         # Changing Host header - S5
         elif strategy == "Strategy Five":
             np_server.strategyFiveEnabled = not np_server.strategyFiveEnabled
-            print("Strategy 5 enabled: " + str(np_server.strategyFiveEnabled))
+            nimplantPrint("Strategy 5 enabled: " + str(np_server.strategyFiveEnabled))
 
         # changing frequency - S6
         elif strategy == "Strategy Six":
             np_server.strategySixEnabled = not np_server.strategySixEnabled
-            print("Strategy 6 enabled: " + str(np_server.strategySixEnabled))
+            nimplantPrint("Strategy 6 enabled: " + str(np_server.strategySixEnabled))
 
         # changing packet size - S7
         elif strategy == "Strategy Seven":
             np_server.strategySevenEnabled = not np_server.strategySevenEnabled
-            print("Strategy 7 enabled: " + str(np_server.strategySevenEnabled))
+            nimplantPrint("Strategy 7 enabled: " + str(np_server.strategySevenEnabled))
 
         else:
-            print("Do nothing.")
+            nimplantPrint("Do nothing.")
 
     def step(self, action):
 
@@ -165,19 +167,19 @@ class NimPlantEnv(gym.Env):
         strategy = self.actionDict[action]
         self.trigger_strategy(strategy)
         self.action_time = datetime.now() 
-        print("Sleep for 15 seconds to count alerts ...")
+        nimplantPrint("Sleep for 15 seconds to count alerts ...")
         time.sleep(15)
 
         # Read and filter Snort alerts based on the time interval
         alerts = self.read_snort_alerts()
 
-        print(f"Number of alerts {len(alerts)}")
+        nimplantPrint(f"Number of alerts {len(alerts)}")
 
         if(action != 0):
             self.state[action-1] = not self.state[action-1]
 
-        print(f"The triggered Strategy {strategy}")
-        print(f"State: {self.state}")
+        nimplantPrint(f"The triggered Strategy {strategy}")
+        nimplantPrint(f"State: {self.state}")
         
         #alert dependent
         number_of_alerts = len(alerts)
@@ -185,7 +187,7 @@ class NimPlantEnv(gym.Env):
         # positive reward, but continue until 5 
         punishment_per_weight = -4
         max_reward = 10
-        min_reward_to_done = 5
+        min_reward_to_done = 4
 
         if number_of_alerts == 0:
             reward = max_reward - self.state.sum()
@@ -196,10 +198,10 @@ class NimPlantEnv(gym.Env):
             for sid in alerts:
                 sum_of_weights+= self.alert_weights[sid]
             reward = punishment_per_weight * sum_of_weights - self.state.sum()
-        print(f"Triggered Alerts SIDs: {alerts}")
-        print(f"Reward: {reward}")
+        nimplantPrint(f"Triggered Alerts SIDs: {alerts}")
+        nimplantPrint(f"Reward: {reward}")
 
-        print("\n\n")
+        nimplantPrint("\n\n")
 
         if(reward >= min_reward_to_done):
             done = True
@@ -218,7 +220,7 @@ class NimPlantEnv(gym.Env):
         try:
             result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             if result.stderr:
-                print(f"Error reading Snort log: {result.stderr}")
+                nimplantPrint(f"Error reading Snort log: {result.stderr}")
                 return []
             else:
                 # Forward to filtering step
@@ -226,7 +228,7 @@ class NimPlantEnv(gym.Env):
                 return alerts
 
         except Exception as e:
-            print(f"An error occurred: {e}")
+            nimplantPrint(f"An error occurred: {e}")
             return []
     
     # return a list of SIDs
@@ -241,7 +243,7 @@ class NimPlantEnv(gym.Env):
                 timestamp_str = f"{parts[0]}"
 
 
-                # print(f"extractd SID {sid_str}, and time {timestamp_str}")
+                # nimplantPrint(f"extractd SID {sid_str}, and time {timestamp_str}")
 
                 # convert them
                 timestamp = datetime.strptime(f"2023-{timestamp_str}", "%Y-%m/%d-%H:%M:%S.%f").timestamp()
@@ -256,8 +258,8 @@ class NimPlantEnv(gym.Env):
         return sid is not None and sid > 1000000  
     
     def is_recent_alert(self, timestamp):
-        # print(f"Action ts: {datetime.datetime.fromtimestamp(self.action_time)}, alert ts: {datetime.datetime.fromtimestamp(timestamp)}")
-        # print(f"Action ts: {self.action_time}, alert ts: {timestamp}")
+        # nimplantPrint(f"Action ts: {datetime.datetime.fromtimestamp(self.action_time)}, alert ts: {datetime.datetime.fromtimestamp(timestamp)}")
+        # nimplantPrint(f"Action ts: {self.action_time}, alert ts: {timestamp}")
 
         # waiting additional 10 seconds after taking an action 
         time_delta = td(seconds=10)

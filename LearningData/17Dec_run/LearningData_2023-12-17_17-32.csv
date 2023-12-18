@@ -1,0 +1,24 @@
+Strategy 1,Strategy 2,Strategy 3,Strategy 4,Strategy 5,Strategy 6,Strategy 7,Action,Number of Alerts,Sum of alert weights,Reward,Done,Timestamp
+False,False,False,False,False,True,False,6,8,19,-77,False,2023-12-17 17:33:01.500320
+False,False,False,False,True,True,False,5,3,12,-50,False,2023-12-17 17:33:16.532913
+False,False,False,False,False,True,False,5,4,13,-53,False,2023-12-17 17:33:31.563701
+False,False,False,False,False,True,True,7,0,0,8,True,2023-12-17 17:33:46.597241
+False,False,False,False,False,False,True,7,0,0,9,True,2023-12-17 17:34:01.633324
+True,False,False,False,False,False,False,1,0,0,9,True,2023-12-17 17:34:16.668319
+False,False,False,True,False,False,False,4,0,0,9,True,2023-12-17 17:34:31.697971
+False,False,False,True,False,False,False,4,0,0,9,True,2023-12-17 17:34:46.732711
+False,False,False,True,False,False,False,4,0,0,9,True,2023-12-17 17:35:01.768667
+False,False,True,False,False,False,False,3,0,0,9,True,2023-12-17 17:35:16.805407
+False,False,True,False,False,False,False,3,0,0,9,True,2023-12-17 17:35:31.839588
+False,False,True,False,False,False,False,3,0,0,9,True,2023-12-17 17:35:46.875042
+False,False,True,False,False,False,False,3,0,0,9,True,2023-12-17 17:36:01.911637
+False,False,True,False,False,False,False,3,0,0,9,True,2023-12-17 17:36:16.941936
+False,False,True,False,False,False,False,3,0,0,9,True,2023-12-17 17:36:31.973840
+False,False,True,False,False,False,False,3,0,0,9,True,2023-12-17 17:36:47.008131
+False,False,True,False,False,False,False,3,0,0,9,True,2023-12-17 17:37:02.052320
+False,False,True,False,False,False,False,3,0,0,9,True,2023-12-17 17:37:17.082847
+False,False,True,False,False,False,False,3,0,0,9,True,2023-12-17 17:37:32.109935
+False,False,True,False,False,False,False,3,0,0,9,True,2023-12-17 17:37:47.143280
+False,False,True,False,False,False,False,3,0,0,9,True,2023-12-17 17:38:02.181616
+False,False,True,False,False,False,False,3,6,21,-85,False,2023-12-17 17:38:17.219199
+False,False,True,False,False,False,True,7,3,12,-50,False,2023-12-17 17:38:32.259063
