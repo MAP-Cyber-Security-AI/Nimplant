@@ -1,3 +1,9 @@
+# NimPlant in _Analysis of the NimPlant Command-and-Control_
+This repository is a clone of the original open-source NimPlant v1.2 repository released on GitHub in April 2023: https://github.com/chvancooten/NimPlant
+
+This repository contains the code related to all NimPlant stages. The codes for the stages are in the corresponding branches. The main branch contains the initial NimPlant code.
+
+
 <div align="center">
   <a href="https://github.com/chvancooten/NimPlant">
     <img src="ui/public/nimplant-logomark.svg" height="150">
