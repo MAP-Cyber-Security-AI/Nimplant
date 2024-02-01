@@ -1,7 +1,10 @@
 # NimPlant in _Analysis of the NimPlant Command-and-Control_
 This repository is a clone of the original open-source NimPlant v1.2 repository released on GitHub in April 2023: https://github.com/chvancooten/NimPlant
 
-This repository contains the code related to all NimPlant stages. The codes for the stages are in the corresponding branches. The main branch contains the initial NimPlant code.
+This repository contains the code related to all NimPlant stages. The codes for the stages are in the corresponding branches.
+- The main branch contains the initial NimPlant code.
+- The evasion-stage-2 branch contains the stage with the command-based evasion.
+- The evasion-stage-3 branch contains the code and the data related to the training of the RL agent.
 
 
 <div align="center">
